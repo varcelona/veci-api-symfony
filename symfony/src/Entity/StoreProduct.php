@@ -17,8 +17,10 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
 
 #[ORM\Entity(repositoryClass: StoreProductRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['stores:read']],
+    normalizationContext: ['groups' => ['stores:read','product:read']],
+    denormalizationContext: ['groups' => ['product:write']],
     paginationClientEnabled: true,
+    paginationType: 'page',
     graphQlOperations: [
         new Query(),
         new QueryCollection(),
@@ -33,32 +35,32 @@ class StoreProduct
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['customer:read'])]
+    #[Groups(['customer:read', 'product:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['stores:read', 'customer:read'])]
+    #[Groups(['stores:read', 'customer:read','product:write'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank]
-    #[Groups(['stores:read', 'customer:read'])]
+    #[Groups(['stores:read', 'customer:read','product:write'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    #[Groups(['stores:read', 'customer:read'])]
+    #[Groups(['stores:read', 'customer:read','product:write'])]
     private ?string $price = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
-    #[Groups(['stores:read', 'customer:read'])]
+    #[Groups(['stores:read', 'customer:read','product:write'])]
     private ?string $originalPrice = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['stores:read', 'customer:read'])]
+    #[Groups(['stores:read', 'customer:read','product:write'])]
     private ?bool $enabled = true;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['stores:read', 'customer:read'])]
+    #[Groups(['stores:read', 'customer:read','product:write'])]
     private ?string $code = null;
 
     #[ORM\Column(nullable: true)]
@@ -69,6 +71,7 @@ class StoreProduct
 
     #[ORM\ManyToOne(inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["product:read", "product:write"])]
     private ?Store $store = null;
 
     /**

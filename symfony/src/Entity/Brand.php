@@ -17,12 +17,24 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
 
 #[ORM\Entity(repositoryClass: BrandRepository::class)]
 #[ApiResource(
+    normalizationContext: ['groups' => ['brands:read', "stores:read"]],
+    denormalizationContext: ['groups' => ['brands:write']],
+    paginationType: 'page',
     graphQlOperations: [
-        new Query(),
-        new QueryCollection(),
-        new Mutation(name: 'create'),
-        new Mutation(name: 'update'),
-        new DeleteMutation(name: 'delete'),
+        new Query(
+        ),
+        new QueryCollection(
+        ),
+        new Mutation(
+            name: 'create',
+        ),
+        new Mutation(
+            name: 'update',
+
+        ),
+        new DeleteMutation(
+            name: 'delete'
+        ),
     ]
 )]
 class Brand
@@ -30,25 +42,28 @@ class Brand
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["stores:read"])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: false)]
     #[Assert\NotBlank]
-    #[Groups(['stores:read'])]
+    #[Groups(["brand:read", "stores:read", "brands:write"])]
     private ?string $title = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Assert\NotBlank]
-    #[Groups(['stores:read'])]
+    #[Groups(["brand:read", "stores:read", "brands:write"])]
     private ?string $description = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(["brand:read", "stores:read", "brands:write"])]
     private ?bool $enabled = null;
 
     /**
      * @var Collection<int, Store>
      */
     #[ORM\OneToMany(targetEntity: Store::class, mappedBy: 'brand')]
+    #[Groups(["brand:read"])]
     private Collection $stores;
 
     public function __construct()

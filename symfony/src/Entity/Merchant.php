@@ -36,6 +36,7 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
     ],
     normalizationContext: ['groups' => ['merchant:read']],
     denormalizationContext: ['groups' => ['merchant:create', 'merchant:update']],
+    paginationType: 'page',
     graphQlOperations: [
         new Query(),
         new QueryCollection(),

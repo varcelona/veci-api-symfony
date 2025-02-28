@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GraphQl\DeleteMutation;
 use ApiPlatform\Metadata\GraphQl\Mutation;
@@ -10,7 +11,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use LongitudeOne\Spatial\PHP\Types\SpatialInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Metadata\GraphQl\Query;
@@ -19,14 +19,23 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
 #[ORM\Entity(repositoryClass: StoreRepository::class)]
 
 #[ApiResource(
-    normalizationContext: ['groups' => ['stores:read']],
+    normalizationContext: ['groups' => ['stores:read', "brands:read"]],
+    denormalizationContext: ['groups' => ['stores:write']],
     paginationClientEnabled: true,
+    paginationType: 'page',
     graphQlOperations: [
-        new Query(),
+        new Query(
+        ),
         new QueryCollection(),
-        new Mutation(name: 'create'),
-        new Mutation(name: 'update'),
-        new DeleteMutation(name: 'delete'),
+        new Mutation(
+            name: 'create',
+        ),
+        new Mutation(
+            name: 'update',
+        ),
+        new DeleteMutation(
+            name: 'delete'
+        ),
     ]
 )]
 class Store
@@ -34,49 +43,50 @@ class Store
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['stores:read'])]
+    #[Groups(["stores:read"])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: false)]
     #[Assert\NotBlank]
-    #[Groups(['stores:read'])]
+    #[Groups(["stores:read", "stores:write", 'schedule:read'])]
     private ?string $title = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Assert\NotBlank]
-    #[Groups(['stores:read'])]
+    #[Groups(["stores:read", "stores:write"])]
     private ?string $description = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(["stores:read", "stores:write"])]
     private ?bool $enabled = null;
 
-    #[ORM\ManyToOne(inversedBy: 'stores')]
+    #[ORM\ManyToOne(targetEntity: Brand::class, inversedBy: 'stores')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['stores:read'])]
+    #[Groups(["stores:read", "stores:write"])]
     private ?Brand $brand = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['stores:read'])]
+    #[Groups(["stores:read", "stores:write"])]
     private ?string $address = null;
 
     /**
      * @var Collection<int, StoreProduct>
      */
     #[ORM\OneToMany(targetEntity: StoreProduct::class, mappedBy: 'store')]
-    #[Groups(['stores:read'])]
+    #[Groups(["stores:read"])]
     private Collection $products;
 
-    #[ORM\Column(type: 'point', nullable: true)]
+    #[ORM\Column(type: "json", nullable: false)]
     #[Assert\NotBlank]
-    #[Groups(['stores:read'])]
-    private ?SpatialInterface $geolocation = null;
+    #[Groups(["stores:read", "stores:write"])]
+    private array $geolocation = [];
 
     /**
      * @var Collection<int, StoreSchedule>
      */
     #[ORM\OneToMany(targetEntity: StoreSchedule::class, mappedBy: 'store')]
     #[Assert\NotBlank]
-    #[Groups(['stores:read'])]
+    #[Groups(["stores:read", "stores:write"])]
     private Collection $schedule;
 
     public function __construct()
@@ -180,14 +190,17 @@ class Store
         return $this;
     }
 
-    public function getGeolocation(): ?SpatialInterface
+    public function getGeolocation(): array
     {
         return $this->geolocation;
     }
 
-    public function setGeolocation(SpatialInterface $geolocation): static
+    public function setGeolocation(array $geoJson): self
     {
-        $this->geolocation = $geolocation;
+        if (!isset($geoJson['type']) || $geoJson['type'] !== 'Point' || !isset($geoJson['coordinates'])) {
+            throw new \InvalidArgumentException("Invalid GeoJSON format");
+        }
+        $this->geolocation = $geoJson;
 
         return $this;
     }
