@@ -17,17 +17,12 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CustomerRepository;
 use App\Controller\Api\CustomerInfo;
 use App\State\UserPasswordHasher;
-use Doctrine\ORM\Mapping\Index;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints as Assert;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use App\Entity\User;
 
 #[ApiResource(
-    // security: "is_granted('ROLE_CUSTOMER')",
     operations: [
         new GetCollection(),
         new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'customer:create']]),
@@ -50,15 +45,12 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
     graphQlOperations: [
         new Query(),
         new QueryCollection(),
-        new Mutation(name: 'create'),
         new Mutation(name: 'update'),
         new DeleteMutation(name: 'delete'),
     ]
 )]
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
-#[Index(name: 'search_idx', columns: ['email'])]
-#[UniqueEntity('email')]
-class Customer implements UserInterface, PasswordAuthenticatedUserInterface
+class Customer
 {
     public const ROLE_CUSTOMER = 'ROLE_CUSTOMER';
 
@@ -68,24 +60,9 @@ class Customer implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\GeneratedValue]
     private ?int $id = null;
 
-    #[Assert\NotBlank]
-    #[Assert\Email]
-    #[Groups(['customer:read', 'customer:create', 'customer:update'])]
-    #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
-
-    #[ORM\Column]
-    private ?string $password = null;
-
-    #[Assert\NotBlank(groups: ['customer:create'])]
-    #[Groups(['customer:create', 'customer:update'])]
-    private ?string $plainPassword = null;
-
-    #[ORM\Column(type: 'json')]
-    private array $roles = [];
-
-    #[ORM\Column(type: 'boolean')]
-    private $enabled = true;
+    #[ORM\OneToOne(inversedBy: 'customer')]
+    #[ORM\JoinColumn(nullable: false)]
+    private User $user;
 
     /**
      * @var Collection<int, StoreProduct>
@@ -102,99 +79,6 @@ class Customer implements UserInterface, PasswordAuthenticatedUserInterface
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
-
-    public function setEmail(string $email): self
-    {
-        $this->email = $email;
-
-        return $this;
-    }
-
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): self
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    public function getPlainPassword(): ?string
-    {
-        return $this->plainPassword;
-    }
-
-    public function setPlainPassword(?string $plainPassword): self
-    {
-        $this->plainPassword = $plainPassword;
-
-        return $this;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-
-        $roles[] = 'ROLE_CUSTOMER';
-
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): self
-    {
-        $this->roles = $roles;
-
-        return $this;
-    }
-
-    public function getEnabled(): bool
-    {
-        return $this->enabled;
-    }
-
-    public function setEnabled(bool $enabled): self
-    {
-        $this->enabled = $enabled;
-
-        return $this;
-    }
-
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        $this->plainPassword = null;
-    }
-
-    public function __toString(): string
-    {
-        return $this->getEmail();
     }
 
     /**
@@ -217,6 +101,18 @@ class Customer implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeFavorite(StoreProduct $favorite): static
     {
         $this->favorites->removeElement($favorite);
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
 
         return $this;
     }

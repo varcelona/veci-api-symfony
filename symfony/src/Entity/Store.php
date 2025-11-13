@@ -25,16 +25,22 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
     paginationType: 'page',
     graphQlOperations: [
         new Query(
+            security: "is_granted('PUBLIC_ACCESS')"
         ),
-        new QueryCollection(),
+        new QueryCollection(
+            security: "is_granted('PUBLIC_ACCESS')"
+        ),
         new Mutation(
             name: 'create',
+            security: "is_granted('ROLE_ADMIN')"
         ),
         new Mutation(
             name: 'update',
+            security: "is_granted('ROLE_ADMIN')"
         ),
         new DeleteMutation(
-            name: 'delete'
+            name: 'delete',
+            security: "is_granted('ROLE_ADMIN')"
         ),
     ]
 )]

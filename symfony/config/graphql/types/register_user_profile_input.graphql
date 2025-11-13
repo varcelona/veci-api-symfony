@@ -1,0 +1,9 @@
+"Input para datos del perfil dentro de la mutación registerUser"
+input RegisterUserProfileInput {
+  firstName: String!
+  lastName: String!
+  companyRole: String
+  displayName: String
+  description: String
+  imageId: ID # Opcional: si querés asociar una Image existente
+}

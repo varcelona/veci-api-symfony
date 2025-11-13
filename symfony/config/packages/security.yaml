@@ -19,40 +19,45 @@ security:
                 class: App\Entity\Customer
                 property: email
         api_user_provider:
-            chain:
-                providers: ['merchant_user_provider', 'customer_user_provider']
+            # chain:
+            #     providers: ['merchant_user_provider', 'customer_user_provider']
+            entity:
+                class: App\Entity\User
+                property: email
 
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        api:
-            pattern: ^/api/
+        # Endpoint de login por JSON (email/password) -> devuelve JWT (Lexik)
+        api_login:
+            pattern: ^/auth/login
             stateless: true
-            jwt: ~
             json_login:
-                check_path: /api/login # The name in routes.yaml is enough for mapping
+                check_path: /auth/login
                 username_path: email
                 password_path: password
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
-            refresh_jwt:
-                check_path: /api/token/refresh # or, you may use the `api_refresh_token` route name
-                # or if you have more than one user provider
+                provider: api_user_provider
+
+        # Refresh token -> devuelve un nuevo JWT
+        refresh:
+            pattern: ^/auth/token/refresh
+            stateless: true
+            security: false
+
+        # GraphQL/API protegida por JWT
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~   # authenticator de Lexik
             provider: api_user_provider
-            entry_point: jwt
 
         main:
             pattern: ^/admin/
             lazy: true
             provider: app_user_provider
-
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
             user_checker: security.user_checker.chain.main
 
             login_throttling:
@@ -86,7 +91,10 @@ security:
         # - { path: ^/$, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI
         # - { path: ^/api, roles: PUBLIC_ACCESS } # Allows accessing API documentations and Swagger UI docs
         # - { path: ^/auth, roles: PUBLIC_ACCESS }
-        - { path: ^/api/(login|token/refresh), roles: PUBLIC_ACCESS }
+        - { path: ^/auth/login, roles: PUBLIC_ACCESS }
+        - { path: ^/auth/token/refresh, roles: PUBLIC_ACCESS }
+        - { path: ^/api/graphql, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin/login, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }

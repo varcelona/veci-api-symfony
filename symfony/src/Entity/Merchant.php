@@ -2,8 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiFilter;
-use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -24,6 +22,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use App\Entity\User;
 
 #[ApiResource(
     operations: [
@@ -46,9 +45,7 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
     ]
 )]
 #[ORM\Entity(repositoryClass: MerchantRepository::class)]
-#[Index(name: 'search_idx', columns: ['email'])]
-#[UniqueEntity('email')]
-class Merchant implements UserInterface, PasswordAuthenticatedUserInterface
+class Merchant
 {
     public const ROLE_MERCHANT = 'ROLE_MERCHANT';
 
@@ -58,120 +55,26 @@ class Merchant implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\GeneratedValue]
     private ?int $id = null;
 
-    #[Assert\NotBlank]
-    #[Assert\Email]
-    #[Groups(['merchant:read', 'merchant:create', 'merchant:update'])]
-    #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
-
-    #[ORM\Column]
-    private ?string $password = null;
-
-    #[Assert\NotBlank(groups: ['merchant:create'])]
-    #[Groups(['merchant:create', 'merchant:update'])]
-    private ?string $plainPassword = null;
-
-    #[ORM\Column(type: 'json')]
-    private array $roles = [];
-
-    #[ORM\Column(type: 'boolean')]
-    private $enabled = true;
+    #[ORM\OneToOne(inversedBy: 'merchant')]
+    #[ORM\JoinColumn(nullable: false)]
+    private User $user;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getUser(): ?User
     {
-        return $this->email;
+        return $this->user;
     }
 
-    public function setEmail(string $email): self
+    public function setUser(User $user): self
     {
-        $this->email = $email;
+        $this->user = $user;
 
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
 
-    public function setPassword(string $password): self
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    public function getPlainPassword(): ?string
-    {
-        return $this->plainPassword;
-    }
-
-    public function setPlainPassword(?string $plainPassword): self
-    {
-        $this->plainPassword = $plainPassword;
-
-        return $this;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-
-        $roles[] = 'ROLE_MERCHANT';
-
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): self
-    {
-        $this->roles = $roles;
-
-        return $this;
-    }
-
-    public function getEnabled(): bool
-    {
-        return $this->enabled;
-    }
-
-    public function setEnabled(bool $enabled): self
-    {
-        $this->enabled = $enabled;
-
-        return $this;
-    }
-
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        $this->plainPassword = null;
-    }
-
-    public function __toString(): string
-    {
-        return $this->getEmail();
-    }
 }
