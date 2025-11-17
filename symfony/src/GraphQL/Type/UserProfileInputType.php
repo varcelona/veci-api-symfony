@@ -5,12 +5,12 @@ use ApiPlatform\GraphQl\Type\Definition\TypeInterface;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\Type as GqlType;
 
-final class RegisterUserProfileInputType extends InputObjectType implements TypeInterface
+final class UserProfileInputType extends InputObjectType implements TypeInterface
 {
     public function __construct()
     {
         parent::__construct([
-            'name' => 'RegisterUserProfileInput',
+            'name' => 'UserProfileInput',
             'fields' => [
                 'firstName'   => GqlType::nonNull(GqlType::string()),
                 'lastName'    => GqlType::nonNull(GqlType::string()),
@@ -25,6 +25,6 @@ final class RegisterUserProfileInputType extends InputObjectType implements Type
     // Api Platform usa este nombre para el registro
     public function getName(): string
     {
-        return 'RegisterUserProfileInput';
+        return 'UserProfileInput';
     }
 }

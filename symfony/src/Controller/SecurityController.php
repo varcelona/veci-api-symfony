@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Form\LoginUserFormType;
 use App\Repository\UserRepository;
 use App\Security\EmailVerifier;
+use Scheb\TwoFactorBundle\Model\Email\TwoFactorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,12 +14,15 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Email\Generator\CodeGeneratorInterface;
 
 class SecurityController extends AbstractController
 {
     public function __construct(
         private EmailVerifier $emailVerifier,
-        private Security $security
+        private Security $security,
+        private CodeGeneratorInterface $codeGenerator,
+        private TranslatorInterface $translator
     ) {
     }
 
@@ -43,7 +47,7 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    #[Route('/verify/email', name: 'app_verify_email')]
+    #[Route('/admin/verify-email', name: 'app_verify_email')]
     public function verifyUserEmail(Request $request, TranslatorInterface $translator, UserRepository $userRepository): Response
     {
         $id = $request->get('id'); // retrieve the user id from the url
@@ -67,21 +71,41 @@ class SecurityController extends AbstractController
             $this->emailVerifier->handleEmailConfirmation($request, $user);
         } catch (VerifyEmailExceptionInterface $exception) {
             $this->addFlash('danger', $translator->trans($exception->getReason(), [], 'VerifyEmailBundle'));
-
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('backend_login');
         }
 
         // @TODO Change the redirect on success and handle or remove the flash message in your templates
-        $this->addFlash('success', 'Your email address has been verified.');
+        $this->addFlash('success', $this->translator->trans(
+            'message.account_confirmation_success'
+        ));
 
         $this->security->login($user, 'form_login');
 
-        return $this->redirectToRoute('app_register_completed');
+        return $this->redirectToRoute('backend_login');
     }
 
 
-    #[Route('/admin/logout', name: 'backend_logout', methods: ['GET'])]
-    public function logout()
+    #[Route('/admin/logout', name: 'backend_logout', methods: ['GET'], priority: 10)]
+    public function logout():  void
     {
+        return;
+    }
+
+    #[Route('/admin/2fa-resend', name: 'backend_2fa_resend', methods: ['GET'], priority: 10)]
+    public function resendCode(): Response
+    {
+        $user = $this->security->getUser();
+
+        if ($user instanceof TwoFactorInterface) {
+            $this->codeGenerator->generateAndSend($user);
+
+            $this->addFlash('success', $this->translator->trans('auth_code_resended', [], 'security'));
+
+            return $this->redirectToRoute('2fa_login');
+        }
+
+        $this->addFlash('warning', $this->translator->trans('auth_code_user_invalid', [], 'security'));
+
+        return $this->redirectToRoute('2fa_login');
     }
 }

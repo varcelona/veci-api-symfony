@@ -10,12 +10,15 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Validator\Constraints;
 use Symfony\Component\Form\Extension\Core\Type as CoreType;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Bundle\SecurityBundle\Security;
+
 
 class UserType extends AbstractType
 {
+    public function __construct(private Security $security) {}
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -81,25 +84,6 @@ class UserType extends AbstractType
                     ]),
                 ]
             ])
-            ->add('roles', CoreType\ChoiceType::class, [
-                'placeholder' => 'form.placeholder.role',
-                'attr' => [
-                    'class' => 'form-control form-control-lg shadow-none'
-                ],
-                'label_attr' => [
-                    'class' => 'd-flex align-items-center fs-6 fw-semibold mb-2'
-                ],
-                'label' => 'form.label.role',
-                'choices' => [
-                    User::ROLE_ADMIN => User::ROLE_ADMIN
-                ],
-                'required' => true,
-                'constraints' => [
-                    new Constraints\NotBlank([
-                        'message' => 'Please enter the new user role',
-                    ]),
-                ]
-            ])
             ->add('enabled', CoreType\CheckboxType::class, [
                 'label' => 'form.label.enabled',
                 'attr' => [
@@ -116,15 +100,38 @@ class UserType extends AbstractType
             ])
         ;
 
-        $builder->get('roles')
-            ->addModelTransformer(new CallbackTransformer(
-                function ($rolesAsArray) {
-                    return count($rolesAsArray) ? $rolesAsArray[0]: null;
-                },
-                function ($rolesAsString) {
-                    return [$rolesAsString];
-                }
+        // Determinar choices según rol del current user (aquí lo definimos en buildForm)
+        $availableRoles = [];
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            $availableRoles = [
+                User::ROLE_ADMIN    => User::ROLE_ADMIN,
+                User::ROLE_MERCHANT => User::ROLE_MERCHANT,
+                User::ROLE_CUSTOMER => User::ROLE_CUSTOMER,
+            ];
+        } elseif ($this->security->isGranted('ROLE_MERCHANT')) {
+            $availableRoles = [
+                'Customer' => User::ROLE_CUSTOMER,
+            ];
+        } else {
+            // Por defecto nadie ve selector; lo hacemos hidden -> customer
+            $availableRoles = [
+                'Customer' => User::ROLE_CUSTOMER,
+            ];
+        }
+
+        // Añadimos el campo roles en el builder (aquí SI podemos añadir el transformer)
+        $builder->add('roles', CoreType\ChoiceType::class, [
+            'choices' => $availableRoles,
+            'required' => true,
+            'placeholder' => 'form.placeholder.role',
+            // single select (representamos internamente como array con transformer)
+        ]);
+
+        $builder->get('roles')->addModelTransformer(new CallbackTransformer(
+            fn($rolesAsArray) => is_array($rolesAsArray) && count($rolesAsArray) ? $rolesAsArray[0] : null,
+            fn($rolesAsString) => $rolesAsString ? [$rolesAsString] : []
         ));
+
 
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
             $form = $event->getForm();
@@ -180,6 +187,26 @@ class UserType extends AbstractType
                         ],
                     ])
                 ;
+            }
+        });
+
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event): void {
+            $data = $event->getData();
+            if (!$data || !\is_array($data)) {
+                return;
+            }
+
+            // Si el creador es MERCHANT, forzamos ROLE_CUSTOMER
+            if ($this->security->isGranted('ROLE_MERCHANT')) {
+                $data['roles'] = User::ROLE_CUSTOMER;
+                $event->setData($data);
+                return;
+            }
+
+            // Si no es ADMIN y enviaron roles no permitidos, forzamos CUSTOMER
+            if (!$this->security->isGranted('ROLE_ADMIN')) {
+                $data['roles'] = User::ROLE_CUSTOMER;
+                $event->setData($data);
             }
         });
     }

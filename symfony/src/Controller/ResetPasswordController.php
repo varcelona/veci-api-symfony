@@ -14,6 +14,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -21,7 +23,7 @@ use SymfonyCasts\Bundle\ResetPassword\Controller\ResetPasswordControllerTrait;
 use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 
-#[Route('/reset-password')]
+#[Route('/admin/reset-password')]
 class ResetPasswordController extends AbstractController
 {
     use ResetPasswordControllerTrait;
@@ -29,14 +31,16 @@ class ResetPasswordController extends AbstractController
     public function __construct(
         private ResetPasswordHelperInterface $resetPasswordHelper,
         private EntityManagerInterface $entityManager,
-        private Security $security
+        private Security $security,
+        private ParameterBagInterface $parameterBag,
+        private \Twig\Environment $twig
     ) {
     }
 
     /**
      * Display & process form to request a password reset.
      */
-    #[Route('', name: 'app_forgot_password_request')]
+    #[Route('', name: 'app_forgot_password_request', priority: 10)]
     public function request(Request $request, MailerInterface $mailer, TranslatorInterface $translator): Response
     {
         $form = $this->createForm(ResetPasswordRequestFormType::class);
@@ -58,7 +62,7 @@ class ResetPasswordController extends AbstractController
     /**
      * Confirmation page after a user has requested a password reset.
      */
-    #[Route('/check-email', name: 'app_check_email')]
+    #[Route('/check-email', name: 'app_check_email', priority: 10)]
     public function checkEmail(): Response
     {
         // Generate a fake token if the user does not exist or someone hit this page directly.
@@ -75,7 +79,7 @@ class ResetPasswordController extends AbstractController
     /**
      * Validates and process the reset URL that the user clicked in their email.
      */
-    #[Route('/reset/{token}', name: 'app_reset_password')]
+    #[Route('/reset/{token}', name: 'app_reset_password', priority: 10)]
     public function reset(Request $request, UserPasswordHasherInterface $passwordHasher, TranslatorInterface $translator, string $token = null): Response
     {
         if ($token) {
@@ -127,9 +131,11 @@ class ResetPasswordController extends AbstractController
                 $this->security->login($user, 'form_login');
             }
 
-            $this->addFlash('success', 'Now, you have a new password!');
+            $this->addFlash('success', $translator->trans(
+                'message.reset_password_success'
+            ));
 
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('backend_login');
         }
 
         return $this->render('@backend/authentication/reset_password/reset.html.twig', [
@@ -150,7 +156,7 @@ class ResetPasswordController extends AbstractController
 
         if (!$user->isVerified()) {
             $this->addFlash('warning', 'Your should verify your account.');
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('backend_login');
         }
 
         try {
@@ -169,15 +175,18 @@ class ResetPasswordController extends AbstractController
             return $this->redirectToRoute('app_check_email');
         }
 
+        $resetUrl = $this->generateUrl('app_reset_password', ['token' => $resetToken->getToken()], UrlGeneratorInterface::ABSOLUTE_URL);
+
         $email = (new TemplatedEmail())
-            ->from(new Address('no-reply@zorh.com', 'Zorh'))
+            ->from(new Address($this->parameterBag->get('app.mailer_sender_email'), $this->parameterBag->get('app.mailer_sender_name')))
             ->to($user->getEmail())
-            ->subject('Your password reset request')
-            ->htmlTemplate('authentication/reset_password/email.html.twig')
+            ->subject($translator->trans('ui.emails.reset_password_subject'))
+            ->htmlTemplate('@backend/authentication/emails/reset_password.html.twig')
             ->context([
+                'resetUrl' => $resetUrl,
                 'resetToken' => $resetToken,
-            ])
-        ;
+                'user' => $user->getProfile()->getFirstName()
+            ]);
 
         $mailer->send($email);
 

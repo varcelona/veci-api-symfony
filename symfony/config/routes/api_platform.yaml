@@ -8,3 +8,6 @@ auth:
 api_doc:
     path: /admin/docs
     controller: api_platform.swagger_ui.action
+graphql_playground:
+  path: /docs/graphql_playground
+  controller: api_platform.graphql.action.graphql_playground

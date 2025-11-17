@@ -1,0 +1,49 @@
+{% extends '@backend/authentication/base.html.twig' %}
+
+{% block title %}{{ 'ui.login'|trans }}{% endblock %}
+
+{% block body %}
+  <div class="mb-5 text-center">
+    <h1 class="fw-bold text-dark fs-4">{{ 'ui.login'|trans }}</h1>
+  </div>
+
+  {% if authenticationError %}
+    <p>{{ authenticationError|trans(authenticationErrorData, 'SchebTwoFactorBundle') }}</p>
+  {% endif %}
+
+  {% if availableTwoFactorProviders|length > 1 %}
+      <p>{{ "choose_provider"|trans({}, 'SchebTwoFactorBundle') }}:
+          {% for provider in availableTwoFactorProviders %}
+              <a href="{{ path('2fa_login', {'preferProvider': provider}) }}">{{ provider }}</a>
+          {% endfor %}
+      </p>
+  {% endif %}
+
+  <form class="form" action="{{ checkPathUrl ? checkPathUrl: path(checkPathRoute) }}" method="post" class="my-auto">
+    <div class="mb-4">
+      <label class="d-flex align-items-center fs-6 fw-semibold mb-2 form-label col-form-label fw-semibold required" for="_auth_code">{{ "auth_code"|trans({}, 'SchebTwoFactorBundle') }} {{ twoFactorProvider }}</label>
+      <input type="text" id="_auth_code" name="{{ authCodeParameterName }}" required="required" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" placeholder="{{ 'form.label.auth_code'|trans }}" class="form-control-lg form-control-solid shadow-none form-control" autofocus="autofocus" tabindex="1">
+    </div>
+
+    <div class="d-flex justify-content-end">
+      <a href="{{ path('backend_2fa_resend')}}" class="link-primary fs-6 fw-bold">
+        {{ 'ui.resend_auth_code'|trans }}
+      </a>
+    </div>
+
+    {% if displayTrustedOption %}
+        <div class="form-check form-switch">
+          <input class="form-check-input" name="{{ trustedParameterName }}" type="checkbox" role="switch" id="_trusted">
+          <label class="form-check-label" for="_trusted">{{ "trusted"|trans({}, 'SchebTwoFactorBundle') }}</label>
+        </div>
+    {% endif %}
+
+    {% if isCsrfProtectionEnabled %}
+        <input type="hidden" name="{{ csrfParameterName }}" value="{{ csrf_token(csrfTokenId) }}">
+    {% endif %}
+
+    <div class="text-center pt-4">
+      <button type="submit" class="btn btn-lg btn-primary w-100 mb-4" tabindex="3">{{ 'ui.button.validate'|trans }}</button>
+    </div>
+  </form>
+{% endblock %}

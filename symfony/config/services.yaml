@@ -26,11 +26,20 @@ services:
         bind:
             $processor: '@api_platform.doctrine.orm.state.persist_processor'
 
-    # GraphQL custom input type for "registerUser" mutation
-    App\GraphQL\Type\RegisterUserProfileInputType:
+    App\Service\AuthCodeMailer:
+        arguments:
+            $mailer: '@mailer.mailer'
+
+    # GraphQL custom input type for "register" mutation
+    App\GraphQL\Type\UserProfileInputType:
         tags: ['api_platform.graphql.type']
 
     App\GraphQL\Resolver\RegisterCustomerResolver:
         arguments:
             $em: '@doctrine.orm.entity_manager'
             $passwordHasher: '@security.password_hasher'
+
+    App\Menu\Backend:
+        arguments: ["@knp_menu.factory"]
+        tags:
+            - { name: knp_menu.menu_builder, method: createBackendAdminMenu, alias: backendAdminMenu }

@@ -33,6 +33,14 @@ services:
     depends_on:
       - mysql
       - redis
+      - mailhog
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: veci_mailhog
+    ports:
+    - "1025:1025"
+    - "8025:8025"
 
   mysql:
     image: mysql:8.0.36

@@ -98,8 +98,19 @@ security:
         # - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin/login, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
 
+    role_hierarchy:
+        ROLE_ADMIN:
+            - ROLE_MERCHANT
+            - MANAGE_ALL_USERS
+            - MANAGE_SELF
+
+        ROLE_MERCHANT:
+            - MANAGE_SELF_LIMITED
+            - MANAGE_CUSTOMERS
+
+        ROLE_CUSTOMER:
+            - MANAGE_CUSTOMER_SELF
 when@test:
     security:
         password_hashers:

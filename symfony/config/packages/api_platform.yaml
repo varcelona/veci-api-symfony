@@ -6,6 +6,8 @@ api_platform:
         graphql: ['application/graphql']
     graphql:
         enabled: true
+        graphql_playground:
+            enabled: true
 
     docs_formats:
         jsonld: ['application/ld+json']

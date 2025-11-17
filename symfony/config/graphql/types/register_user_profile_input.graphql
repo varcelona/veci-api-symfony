@@ -1,5 +1,5 @@
-"Input para datos del perfil dentro de la mutación registerUser"
-input RegisterUserProfileInput {
+"Input para datos del perfil dentro de la mutación register"
+input UserProfileInput {
   firstName: String!
   lastName: String!
   companyRole: String

@@ -20,10 +20,13 @@ use App\GraphQL\Resolver\CreateUserWithProfileResolver;
 use App\GraphQL\Resolver\LoginUserResolver;
 use App\GraphQL\Resolver\RegisterCustomerResolver;
 use App\GraphQL\Resolver\UpdateCustomerResolver;
+use Scheb\TwoFactorBundle\Model\Email\TwoFactorInterface;
+use App\Models\CreateUpdateTrait;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 #[Index(name: 'search_idx', columns: ['email', 'profile_id'])]
+#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     normalizationContext: ['groups' => ['user:read']],
     denormalizationContext: ['groups' => ['user:write']],
@@ -31,7 +34,7 @@ use App\GraphQL\Resolver\UpdateCustomerResolver;
     paginationType: 'page',
     graphQlOperations: [
         // Consultas estándar (solo admins)
-        new Query(security: "is_granted('ROLE_ADMIN')"),
+        new Query(security: "is_granted('IS_AUTHENTICATED_FULLY')"),
         new QueryCollection(security: "is_granted('ROLE_ADMIN')"),
 
         // Crear/editar usuarios internos (solo admin)
@@ -45,12 +48,13 @@ use App\GraphQL\Resolver\UpdateCustomerResolver;
         new Query(
             name: 'me',
             resolver: MeResolver::class,
-            security: "is_granted('IS_AUTHENTICATED_FULLY')"
+            security: "is_granted('IS_AUTHENTICATED_FULLY')",
+            args: []
         ),
 
         // Registro con perfil completo
         new Mutation(
-            name: 'registerUser',
+            name: 'register',
             resolver: CreateUserWithProfileResolver::class,
             security: "is_granted('PUBLIC_ACCESS')",
             args: [
@@ -58,7 +62,7 @@ use App\GraphQL\Resolver\UpdateCustomerResolver;
                 'password' => ['type' => 'String!'],
                 'roles' => ['type' => '[String!]', 'description' => 'Roles opcionales'],
                 'enabled' => ['type' => 'Boolean', 'description' => 'Por defecto true'],
-                'profile' => ['type' => 'RegisterUserProfileInput!', 'description' => 'Datos del perfil embebido']
+                'profile' => ['type' => 'UserProfileInput!', 'description' => 'Datos del perfil embebido']
             ]
         ),
 
@@ -82,14 +86,17 @@ use App\GraphQL\Resolver\UpdateCustomerResolver;
                 'id' => ['type' => 'ID!'],
                 'email' => ['type' => 'String'],
                 'password' => ['type' => 'String'],
-                'profile' => ['type' => 'RegisterUserProfileInput']
+                'profile' => [
+                    'type' => 'UserProfileInput',
+                    'description' => 'Datos del perfil del usuario'
+                ],
             ]
         ),
 
         // Login de usuario
         new Mutation(
             name: 'loginCustomer',
-            resolver: LoginUserResolver::class, 
+            resolver: LoginUserResolver::class,
             security: "is_granted('PUBLIC_ACCESS')",
             args: [
                 'email' => ['type' => 'String!'],
@@ -98,11 +105,14 @@ use App\GraphQL\Resolver\UpdateCustomerResolver;
         ),
     ]
 )]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface
 {
+
     public const ROLE_ADMIN = 'ROLE_ADMIN';
     public const ROLE_CUSTOMER = 'ROLE_CUSTOMER';
     public const ROLE_MERCHANT = 'ROLE_MERCHANT';
+
+    use CreateUpdateTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -130,10 +140,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read'])]
     private ?\DateTimeImmutable $passwordChanged = null;
 
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    #[Groups(['user:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
-
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['user:read', 'customer:read', 'user:write'])]
@@ -148,6 +154,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Customer::class, cascade: ['persist', 'remove'])]
     #[Groups(['user:read'])]
     private ?Customer $customer = null;
+
+    #[ORM\Column(type: 'boolean')]
+    #[Groups(['user:read'])]
+    private $isVerified = false;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $authCode;
 
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Merchant::class, cascade: ['persist', 'remove'])]
     #[Groups(['user:read'])]
@@ -263,5 +276,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->merchant = $merchant;
         return $this;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setVerified(bool $isVerified): self
+    {
+        $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    public function isEmailAuthEnabled(): bool
+    {
+        return $this->isVerified;
+    }
+
+    public function getEmailAuthRecipient(): string
+    {
+        return $this->email;
+    }
+
+    public function getEmailAuthCode(): string
+    {
+        if (null === $this->authCode) {
+            throw new \LogicException('The email authentication code was not set');
+        }
+
+        return $this->authCode;
+    }
+
+    public function setEmailAuthCode(string $authCode): void
+    {
+        $this->authCode = $authCode;
     }
 }

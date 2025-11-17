@@ -2,14 +2,21 @@
     <div id="aside-header" class="w-100">
       <div class="d-none d-lg-flex pt-5 px-4 ms-2">
         <a href="{{ path('backend_dashboard') }}" class="w-100 text-center">
-          <img src="{{ absolute_url(asset('build/images/backend/logo-wowcx-dark.png')) }}" alt="{{ settings.prop.siteSlogan }}" class="img-fluid" width="150" height="73">
+          <img src="{{ absolute_url(asset('images/backend/logo.png')) }}" alt="{{ settings.prop.siteSlogan }}" class="img-fluid" width="150" height="50">
         </a>
       </div>
     </div>
 
     <div id="aside-menu" class="app-sidebar-menu hover-scroll-y w-100">
-      <div class="menu menu-column menu-sub-indention menu-active-bg fw-semibold px-3 my-2 my-lg-3">
 
+      <div class="menu menu-column menu-sub-indention menu-active-bg fw-semibold px-3 my-2 my-lg-3">
+          {% set adminMenu = knp_menu_get('backendAdminMenu', [], {}) %}
+          {{ knp_menu_render(adminMenu, {
+              template: '@backend/knp_menu/menu.html.twig',
+              currentClass: 'active',
+              currentAsLink: false,
+              'ancestorClass': 'show'
+          }) }}
       </div>
     </div>
 
@@ -20,13 +27,11 @@
         <div class="dropdown dropup">
           <div class="d-flex justify-content-between btn btn-link px-0" data-bs-toggle="dropdown" aria-expanded="false">
             <div class="symbol symbol-40px cursor-pointer me-2">
-              {#
               {% if not app.user.profile.image %}
                 <img src="https://avatar.iran.liara.run/public" width="40" height="40" class="img-fluid img-rounded" alt="{{ app.user.fullName }}">
               {% else %}
-                <img src="{{ absolute_url(vich_uploader_asset(app.user.profile.image) | imagine_filter('avatar')) }}" width="40" height="40" class="img-fluid img-rounded" alt="{{ app.user.fullName }}">
+                <img src="{{ absolute_url(app.user.profile.image | imagine_filter('avatar')) }}" width="40" height="40" class="img-fluid img-rounded" alt="{{ app.user.fullName }}">
               {% endif %}
-              #}
             </div>
 
             <div class="d-flex flex-column text-start">
@@ -37,8 +42,6 @@
             </div>
           </div>
           <ul class="dropdown-menu">
-            <!-- <li><a class="dropdown-item" href="#">My suscription</a></li> -->
-            <!-- <li><a class="dropdown-item" href="#">My profile</a></li> -->
             <li>
               <a class="dropdown-item" href="{{ path('backend_user_edit', {id: app.user.id}) }}">{{ 'ui.edit_profile'|trans }}</a>
             </li>

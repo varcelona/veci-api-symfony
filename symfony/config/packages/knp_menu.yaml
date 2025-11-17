@@ -1,0 +1,6 @@
+knp_menu:
+    # use "twig: false" to disable the Twig extension and the TwigRenderer
+    twig:
+        template: KnpMenuBundle::menu.html.twig
+    # the renderer to use, list is also available by default
+    default_renderer: twig
