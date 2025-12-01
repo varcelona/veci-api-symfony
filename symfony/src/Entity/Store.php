@@ -95,10 +95,24 @@ class Store
     #[Groups(["stores:read", "stores:write"])]
     private Collection $schedule;
 
+    /**
+     * @var Collection<int, Customer>
+     */
+    #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'favorites')]
+    private Collection $customers;
+
+    /**
+     * @var Collection<int, Merchant>
+     */
+    #[ORM\OneToMany(targetEntity: Merchant::class, mappedBy: 'store', orphanRemoval: true)]
+    private Collection $merchant;
+
     public function __construct()
     {
         $this->products = new ArrayCollection();
+        $this->customers = new ArrayCollection();
         $this->schedule = new ArrayCollection();
+        $this->merchant = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -236,6 +250,63 @@ class Store
             if ($schedule->getStore() === $this) {
                 $schedule->setStore(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Merchant>
+     */
+    public function getMerchant(): Collection
+    {
+        return $this->merchant;
+    }
+
+    public function addMerchant(Merchant $merchant): static
+    {
+        if (!$this->merchant->contains($merchant)) {
+            $this->merchant->add($merchant);
+            $merchant->setStore($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMerchant(Merchant $merchant): static
+    {
+        if ($this->merchant->removeElement($merchant)) {
+            // set the owning side to null (unless already changed)
+            if ($merchant->getStore() === $this) {
+                $merchant->setStore(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Customer>
+     */
+    public function getCustomers(): Collection
+    {
+        return $this->customers;
+    }
+
+    public function addCustomer(Customer $customer): static
+    {
+        if (!$this->customers->contains($customer)) {
+            $this->customers->add($customer);
+            $customer->addFavorite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCustomer(Customer $customer): static
+    {
+        if ($this->customers->removeElement($customer)) {
+            $customer->removeFavorite($this);
         }
 
         return $this;

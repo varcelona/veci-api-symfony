@@ -40,7 +40,7 @@ La autenticación se realiza con JWT emitidos desde el endpoint `/auth/login`.
 **Request body:**
 ```json
 {
-  "username": "admin@example.com",
+  "email": "admin@example.com",
   "password": "your_password"
 }
 ```
@@ -109,6 +109,66 @@ query {
 
 ---
 
+### 2️⃣ Query personalizada `registerCustomerUser`
+Devuelve el usuario creado y envia email de verificación para ingresar por la app. Tambien cuenta con el jwt token para no tener q volver a consultarlo. Ahora se agrega el refreshToken unico por sesion de user.
+
+**Mutation:**
+```graphql
+mutation {
+  registerCustomerUser(
+    input: {
+      email: "cliente@nuevocustomer6.com"
+      password: "supersecreto"
+      firstname: "Ana"
+      lastname: "Gómez"
+    }
+  ) {
+    user {
+      id
+      email
+      roles
+      customer {
+        id
+      }
+      profile {
+        firstName
+        lastName
+      }
+      jwt
+      refreshToken
+    }
+  }
+}
+```
+
+**Respuesta:**
+```json
+{
+  "data": {
+    "registerCustomerUser": {
+      "user": {
+        "id": "/api/users/14",
+        "email": "cliente@nuevocustomer6.com",
+        "roles": [
+          "ROLE_CUSTOMER"
+        ],
+        "customer": {
+          "id": "/api/customers/11"
+        },
+        "profile": {
+          "firstName": "Ana",
+          "lastName": "Gómez"
+        },
+        "jwt": "asdasdasd12312312"
+      }
+    }
+  }
+}
+```
+
+> ✅ No requiere parámetro `id`.
+> 🔒 Necesita JWT válido en el header.
+
 ## 🧑‍💼 Entidad `User`
 
 ### Operaciones disponibles (GraphQL)
@@ -140,6 +200,60 @@ JWT_PASSPHRASE=tu_passphrase
 2. Recibe un token JWT.
 3. Lo usa en `Authorization: Bearer ...` para consultas protegidas.
 4. Puede ejecutar `meUser` para obtener su propio perfil. Enviando la Authorization correspondiente
+
+Ahora cuenta con LoginCustomerUser a traves de graphQL que devuelve la información completa con token y refresh incluido como el register.
+
+mutation {
+  registerCustomerUser(
+    input: {
+      email: "cliente@nuevocustomer12.com"
+      password: "supersecreto"
+      firstname: "Ana"
+      lastname: "Gómez"
+    }
+  ) {
+    user {
+      id
+      email
+      roles
+      customer {
+        id
+      }
+      profile {
+        firstName
+        lastName
+      }
+      jwt
+      refreshToken
+    }
+  }
+}
+
+**Respuesta:**
+```json
+{
+  "data": {
+    "registerCustomerUser": {
+      "user": {
+        "id": "/api/users/20",
+        "email": "cliente@nuevocustomer12.com",
+        "roles": [
+          "ROLE_CUSTOMER"
+        ],
+        "customer": {
+          "id": "/api/customers/17"
+        },
+        "profile": {
+          "firstName": "Ana",
+          "lastName": "Gómez"
+        },
+        "jwt": "eyJ0eXAiOiJK...",
+        "refreshToken": "2c93d4d82d0..."
+      }
+    }
+  }
+}
+```
 
 ---
 

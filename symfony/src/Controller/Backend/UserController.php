@@ -192,13 +192,13 @@ class UserController extends AbstractController
     }
 
 
-     #[Route('/verify/{id}', name: 'backend_user_verify', methods: ['GET'])]
+    #[Route('/verify/{id}', name: 'backend_user_verify', methods: ['GET'])]
     public function verify(Request $request, User $user): Response
     {
         // Verificar cuenta: normalmente reservado a global
         $this->denyAccessUnlessGranted(UserVoter::MANAGE_ALL_USERS, $user);
 
-        $this->emailVerifier->sendEmailConfirmation($user);
+        $this->emailVerifier->sendBackendEmailConfirmation($user);
 
         $this->addFlash('success', $this->translator->trans('message.account_confirmation_sent', [
             'email' => $user->getEmail()

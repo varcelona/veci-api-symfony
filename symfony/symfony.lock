@@ -182,6 +182,15 @@
             "config/packages/mailer.yaml"
         ]
     },
+    "symfony/mailgun-mailer": {
+        "version": "7.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "4.4",
+            "ref": "addcb559b32d9dbb4843826b063565e1b15a2a57"
+        }
+    },
     "symfony/maker-bundle": {
         "version": "1.61",
         "recipe": {
@@ -190,6 +199,18 @@
             "version": "1.0",
             "ref": "fadbfe33303a76e25cb63401050439aa9b1a9c7f"
         }
+    },
+    "symfony/messenger": {
+        "version": "7.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "6.0",
+            "ref": "d8936e2e2230637ef97e5eecc0eea074eecae58b"
+        },
+        "files": [
+            "config/packages/messenger.yaml"
+        ]
     },
     "symfony/routing": {
         "version": "7.1",

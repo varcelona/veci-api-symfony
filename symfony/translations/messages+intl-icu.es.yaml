@@ -56,7 +56,7 @@ ui:
   layout: 'Estructura'
   advanced: 'Avanzado'
   password: 'Contraseña'
-  no_image: '[Sin imagen asignada]'
+  no_image: 'Sin imagen asignada'
   no_records_found: 'No hay resultados'
   resend_auth_code: 'Reenviar el código de validación'
   chose_an_option: 'Seleccione una opción'

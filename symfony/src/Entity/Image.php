@@ -26,6 +26,9 @@ class Image
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $entityType = null;
 
+    #[ORM\Column(type: "datetime", nullable: true)]
+    private ?\DateTimeInterface $updatedAt = null;
+
     private ?bool $empty = null;
 
     public function __construct()
@@ -46,7 +49,7 @@ class Image
         $this->imageFile = $imageFile;
 
         if (null !== $imageFile) {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTime('now');
     }
     }
 
@@ -84,5 +87,10 @@ class Image
         }
 
         return true;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
     }
 }

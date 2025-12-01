@@ -1,8 +1,10 @@
 ###> docker ###
 /docker/data
 /docker/logs
-/docker/**/*.crt
-/docker/**/*.key
+/ssl/**/*
+/**/*.crt
+/**/*.key
+/**/*.pem
 /.*.env
 /docker-compose.prod.yml
 ###< docker ###
@@ -12,6 +14,19 @@
 /symfony/phpstan-results.txt
 ###< symfony ###
 
+###> symfony/asset-mapper ###
+symfony/assets/vendor
+symfony/public/assets
+symfony/public/images
+symfony/public/media
+###< symfony/asset-mapper ###
+
+###> vscode ###
+.vscode/
+###< vscode ###
+
+# ignore database dumps
+/*.sql
+
 .DS_Store
 !*.gitkeep
-.vscode/

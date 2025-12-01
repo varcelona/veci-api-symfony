@@ -55,7 +55,7 @@ class SecurityController extends AbstractController
         // Verify the user id exists and is not null
         if (null === $id) {
             $this->addFlash('warning', 'Your validation link is invalid.');
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('backend_login');
         }
 
         $user = $userRepository->find($id);
@@ -63,7 +63,7 @@ class SecurityController extends AbstractController
         // Ensure the user exists in persistence
         if (null === $user) {
             $this->addFlash('warning', 'Your validation link is invalid.');
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('backend_login');
         }
 
         // validate email confirmation link, sets User::isVerified=true and persists

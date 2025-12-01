@@ -74,17 +74,6 @@ class StoreProduct
     #[Groups(["product:read", "product:write"])]
     private ?Store $store = null;
 
-    /**
-     * @var Collection<int, Customer>
-     */
-    #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'favorites')]
-    private Collection $customers;
-
-    public function __construct()
-    {
-        $this->customers = new ArrayCollection();
-    }
-
     public function getId(): ?int
     {
         return $this->id;

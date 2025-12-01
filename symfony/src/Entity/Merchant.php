@@ -14,12 +14,7 @@ use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\MerchantRepository;
 use App\State\UserPasswordHasher;
-use Doctrine\ORM\Mapping\Index;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints as Assert;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use App\Entity\User;
@@ -59,6 +54,10 @@ class Merchant
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
+    #[ORM\ManyToOne(inversedBy: 'merchant')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Store $store = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -72,6 +71,18 @@ class Merchant
     public function setUser(User $user): self
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function getStore(): ?Store
+    {
+        return $this->store;
+    }
+
+    public function setStore(?Store $store): static
+    {
+        $this->store = $store;
 
         return $this;
     }

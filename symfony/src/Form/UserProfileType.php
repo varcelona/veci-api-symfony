@@ -22,7 +22,8 @@ class UserProfileType extends AbstractType
                 'label_attr' => [
                     'class' => 'd-flex align-items-center fs-6 fw-semibold mb-2'
                 ],
-                'label' => 'form.label.role_company'
+                'label' => 'form.label.role_company',
+                'required' => false
             ])
             ->add('firstName', CoreType\TextType::class, [
                 'attr' => [
@@ -83,7 +84,7 @@ class UserProfileType extends AbstractType
             ])
             ->add('image', ImageType::class, [
                 'label' => 'form.label.image',
-                'required' => true,
+                'required' => false,
                 'entity_type' => 'user'
             ])
         ;

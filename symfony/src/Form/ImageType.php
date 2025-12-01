@@ -39,6 +39,7 @@ class ImageType extends AbstractType
                 'required' => false,
                 'allow_delete' => false,
                 'download_uri' => false,
+                'image_uri' => true,
                 'attr' => [
                     'thumbnail_format' => $thumbnailFormat
                 ]

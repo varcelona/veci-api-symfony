@@ -19,9 +19,11 @@ use App\GraphQL\Resolver\MeResolver;
 use App\GraphQL\Resolver\CreateUserWithProfileResolver;
 use App\GraphQL\Resolver\LoginUserResolver;
 use App\GraphQL\Resolver\RegisterCustomerResolver;
+use App\GraphQL\Resolver\SendUserVerificationEmailResolver;
 use App\GraphQL\Resolver\UpdateCustomerResolver;
 use Scheb\TwoFactorBundle\Model\Email\TwoFactorInterface;
 use App\Models\CreateUpdateTrait;
+
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
@@ -72,8 +74,10 @@ use App\Models\CreateUpdateTrait;
             resolver: RegisterCustomerResolver::class,
             security: "is_granted('PUBLIC_ACCESS')",
             args: [
-                'email' => ['type' => 'String!'],
-                'password' => ['type' => 'String!']
+                'email' => ['type' => 'String'],
+                'password' => ['type' => 'String'],
+                'firstname' => ['type' => 'String!'],
+                'lastname' => ['type' => 'String!']
             ]
         ),
 
@@ -93,15 +97,26 @@ use App\Models\CreateUpdateTrait;
             ]
         ),
 
+        new Mutation(
+            name: 'sendVerificationEmail',
+            resolver: SendUserVerificationEmailResolver::class,
+            args: ['id' => ['type' => 'ID!']],
+            security: "is_granted('IS_AUTHENTICATED_FULLY')"
+        ),
+
         // Login de usuario
         new Mutation(
             name: 'loginCustomer',
             resolver: LoginUserResolver::class,
-            security: "is_granted('PUBLIC_ACCESS')",
             args: [
-                'email' => ['type' => 'String!'],
-                'password' => ['type' => 'String!'],
-            ]
+                'email' => ['type' => 'String!', 'description' => 'User email'],
+                'password' => ['type' => 'String!', 'description' => 'User password'],
+            ],
+            security: "is_granted('PUBLIC_ACCESS')",
+            read: false,
+            write: false,
+            deserialize: false,
+            validate: false
         ),
     ]
 )]
@@ -165,6 +180,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Merchant::class, cascade: ['persist', 'remove'])]
     #[Groups(['user:read'])]
     private ?Merchant $merchant = null;
+
+   #[Groups(['user:read'])]
+    private ?string $jwt = null;
+
+    #[Groups(['user:read'])]
+    private ?string $refreshToken = null;
+
+    public function getJwt(): ?string
+    {
+        return $this->jwt;
+    }
+
+    public function setJwt(?string $jwt): self
+    {
+        $this->jwt = $jwt;
+        return $this;
+    }
+
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(?string $refreshToken): self
+    {
+        $this->refreshToken = $refreshToken;
+        return $this;
+    }
 
     public function __construct()
     {

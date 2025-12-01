@@ -1,0 +1,21 @@
+{% extends '@backend/authentication/emails/base.html.twig' %}
+
+{% block body %}
+  <div style="padding-bottom: 30px; font-size: 17px;">
+      <strong>{{ settings.prop.siteUrl ~ ' (' ~ settings.prop.siteName ~')' }}</strong>
+  </div>
+
+  <div style="padding-bottom: 30px">
+      {{ user }}:
+      <br>
+      {{ 'ui.emails.account_confirmation_message_open'|trans }}
+  </div>
+
+  <div style="padding-bottom: 40px; text-align:center;">
+      <a href="{{ signedUrl|raw }}">{{ 'ui.emails.account_confirmation_text'|trans }}</a>
+  </div>
+
+  <div style="padding-bottom: 30px">
+    <small>{{ 'ui.emails.account_confirmation_message_close'|trans }} {{ expiresAtMessageKey|trans(expiresAtMessageData, 'VerifyEmailBundle') }}</small>
+  </div>
+{% endblock %}

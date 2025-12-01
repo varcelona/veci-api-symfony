@@ -4,44 +4,68 @@ namespace App\GraphQL\Resolver;
 
 use ApiPlatform\GraphQl\Resolver\MutationResolverInterface;
 use App\Repository\UserRepository;
+use App\Service\RefreshTokenGenerator;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class LoginUserResolver implements MutationResolverInterface
 {
-    private $passwordHasher;
-    private $jwtManager;
-    private $userRepository;
-
     public function __construct(
-        UserRepository $userRepository,
-        UserPasswordHasherInterface $passwordHasher,
-        JWTTokenManagerInterface $jwtManager
+        private UserRepository $userRepository,
+        private UserPasswordHasherInterface $passwordHasher,
+        private JWTTokenManagerInterface $jwtManager,
+        private RefreshTokenGenerator $refreshTokenGenerator,
+        private LoggerInterface $logger
     ) {
-        $this->userRepository = $userRepository;
-        $this->passwordHasher = $passwordHasher;
-        $this->jwtManager = $jwtManager;
+
     }
 
     public function __invoke(?object $item, array $context): ?object
     {
-        $args = $context['args']['input'];
-        $email = $args['email'];
-        $password = $args['password'];
+        $input = $context['args']['input'] ?? [];
+
+        $email = $input['email'] ?? null;
+        $password = $input['password'] ?? null;
+
+        if (!$email || !$password) {
+            throw new BadRequestHttpException('Email and password are required.');
+        }
 
         $user = $this->userRepository->findOneBy(['email' => $email]);
 
-
-        if (!$this->passwordHasher->isPasswordValid($user, $password)) {
-            throw new \Exception('Invalid credentials');
+        if (!$user || !$this->passwordHasher->isPasswordValid($user, $password)) {
+            throw new BadRequestHttpException('Invalid credentials.');
         }
 
-        $token = $this->jwtManager->create($user);
+        // chequea enabled
+        if (!$user->isEnabled()) { throw new BadRequestHttpException('User disabled'); }
 
-        // return [
-        //     'token' => $token,
-        //     'user' => $user,
-        // ];
-        return $token;
+        try {
+            $jwt = $this->jwtManager->create($user);
+            $user->setJwt($jwt);
+        } catch (\Throwable $e) {
+            $this->logger->error('JWT generation failed', [
+                'email' => $user->getEmail(),
+                'error' => $e->getMessage(),
+            ]);
+
+            // Continuamos sin token
+            $user->setJwt(null);
+        }
+        try {
+            $refresh = $this->refreshTokenGenerator->generate($user);
+            $user->setRefreshToken($refresh);
+        } catch (\Throwable $e) {
+            $this->logger->error('Refresh Token generation failed', [
+                'email' => $user->getEmail(),
+                'error' => $e->getMessage(),
+            ]);
+
+            // Continuamos sin refresh token
+            $user->setRefreshToken(null);
+        }
+
+        return $user;
     }
 }

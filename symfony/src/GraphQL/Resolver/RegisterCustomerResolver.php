@@ -9,18 +9,29 @@ use App\Entity\Customer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use App\Security\EmailVerifier;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use App\Service\RefreshTokenGenerator;
+use Psr\Log\LoggerInterface;
 
 final class RegisterCustomerResolver implements MutationResolverInterface
 {
     public function __construct(
         private EntityManagerInterface $em,
         private UserPasswordHasherInterface $passwordHasher,
+        private EmailVerifier $emailVerifier,
+        private JWTTokenManagerInterface $jwtManager,
+        private RefreshTokenGenerator $refreshTokenGenerator,
+        private LoggerInterface $logger
+
     ) {}
 
-    public function __invoke(?object $item, array $context): object
+    public function __invoke(?object $item, array $context): ?object
     {
         $input = $context['args']['input'] ?? [];
         $email = $input['email'] ?? null;
+        $firstname = $input['firstname'] ?? null;
+        $lastname = $input['lastname'] ?? null;
         $plainPassword = $input['password'] ?? null;
 
         if (!$email || !$plainPassword) {
@@ -43,8 +54,8 @@ final class RegisterCustomerResolver implements MutationResolverInterface
 
         // Crear un perfil vacío o mínimo
         $profile = new UserProfile();
-        $profile->setFirstName('');
-        $profile->setLastName('');
+        $profile->setFirstName($firstname);
+        $profile->setLastName($lastname);
         $user->setProfile($profile);
 
         // Crear la entidad Customer
@@ -57,6 +68,34 @@ final class RegisterCustomerResolver implements MutationResolverInterface
         $this->em->persist($customer);
         $this->em->persist($user);
         $this->em->flush();
+
+        // Enviar email de verificación al customer creado
+        $this->emailVerifier->sendApiEmailConfirmation($user);
+
+        try {
+            $jwt = $this->jwtManager->create($user);
+            $user->setJwt($jwt);
+        } catch (\Throwable $e) {
+            $this->logger->error('JWT generation failed', [
+                'email' => $user->getEmail(),
+                'error' => $e->getMessage(),
+            ]);
+
+            // Continuamos sin token
+            $user->setJwt(null);
+        }
+        try {
+            $refresh = $this->refreshTokenGenerator->generate($user);
+            $user->setRefreshToken($refresh);
+        } catch (\Throwable $e) {
+            $this->logger->error('Refresh Token generation failed', [
+                'email' => $user->getEmail(),
+                'error' => $e->getMessage(),
+            ]);
+
+            // Continuamos sin refresh token
+            $user->setRefreshToken(null);
+        }
 
         return $user;
     }

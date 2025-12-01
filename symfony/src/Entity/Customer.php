@@ -65,10 +65,10 @@ class Customer
     private User $user;
 
     /**
-     * @var Collection<int, StoreProduct>
+     * @var Collection<int, Store>
      */
     #[Groups(['customer:read', 'customer:create', 'customer:update'])]
-    #[ORM\ManyToMany(targetEntity: StoreProduct::class, inversedBy: 'customers')]
+    #[ORM\ManyToMany(targetEntity: Store::class, inversedBy: 'customers')]
     private Collection $favorites;
 
     public function __construct()
@@ -82,14 +82,14 @@ class Customer
     }
 
     /**
-     * @return Collection<int, StoreProduct>
+     * @return Collection<int, Store>
      */
     public function getFavorites(): Collection
     {
         return $this->favorites;
     }
 
-    public function addFavorite(StoreProduct $favorite): static
+    public function addFavorite(Store $favorite): static
     {
         if (!$this->favorites->contains($favorite)) {
             $this->favorites->add($favorite);
@@ -98,7 +98,7 @@ class Customer
         return $this;
     }
 
-    public function removeFavorite(StoreProduct $favorite): static
+    public function removeFavorite(Store $favorite): static
     {
         $this->favorites->removeElement($favorite);
 

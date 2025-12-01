@@ -4,6 +4,12 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.mailer_sender_email: '%env(MAILER_SENDER_EMAIL)%'
+    app.mailer_sender_name: '%env(MAILER_SENDER_NAME)%'
+    app.index: '%env(bool:APP_INDEX)%'
+    app.site_domain: '%env(SITE_DOMAIN)%'
+    app.site_admin_host: '%env(SITE_ADMIN_HOST)%'
+    app.front_verify_url: '%env(APP_VERIFY_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -43,3 +49,7 @@ services:
         arguments: ["@knp_menu.factory"]
         tags:
             - { name: knp_menu.menu_builder, method: createBackendAdminMenu, alias: backendAdminMenu }
+
+    App\Service\RefreshTokenGenerator:
+        arguments:
+            $refreshTokenTtl: '%gesdinet_jwt_refresh_token.ttl%'

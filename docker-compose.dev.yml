@@ -5,15 +5,19 @@ services:
       dockerfile: ./Dockerfile
     container_name: veci_nginx
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     depends_on:
       - php
     volumes:
       - ./symfony:/var/www/project
-      - ./docker/environments/dev/nginx/symfony.conf:/etc/nginx/conf.d/default.conf:ro
       - ./docker/logs/nginx:/var/log/nginx
+      - ./docker/environments/dev/nginx/symfony.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
     links:
       - php
+    extra_hosts:
+      - host.docker.internal:host-gateway
 
   php:
     build:
@@ -27,6 +31,10 @@ services:
     volumes:
       - ./symfony:/var/www/project:rw,cached
       - ./docker/logs/php:/var/log
+       - ./docker/logs/symfony:/var/www/project/var/log
+      - ./docker/environments/dev/php/conf/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini:ro
+
+
     links:
       - mysql
       - redis
@@ -61,6 +69,8 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes:
       - ./docker/data/redis:/data
+    environment:
+      REDIS_DSN: local://redis:6379
 
   redis-commander:
     image: rediscommander/redis-commander:latest

@@ -1,27 +1,43 @@
 FROM node:21.6-alpine AS node
 FROM php:8.3.2-fpm-alpine
 
-# Persistent / runtime deps
+# Persistent / runtime dependencies
 RUN apk add --no-cache \
     acl \
     file \
     gettext \
     unzip \
+    oniguruma-dev \
+    zlib-dev \
+    libzip-dev \
+    libpng-dev \
+    libwebp-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libgd \
+    libzip \
+    libpng \
+    libjpeg \
+    libpq \
+    libxml2 \
+    libxml2-dev \
+    supervisor \
+    gnu-libiconv \
+    autoconf \
+    gcc \
+    g++ \
     make \
     libc-dev \
-    linux-headers
-    
-# Add dependencies
-RUN apk add --update --no-cache --virtual .dd-build-deps oniguruma-dev zlib-dev libzip-dev libpng-dev libwebp-dev libjpeg-turbo-dev freetype-dev libgd libzip libpng libjpeg libpq libxml2 libxml2-dev supervisor openssl $PHPIZE_DEPS
+    linux-headers \
+    git
 
-# Install GD
+# Install GD library
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j "$(nproc)" gd
 
 # Install APCU
-RUN apk add --no-cache pcre-dev $PHPIZE_DEPS \
-        && pecl install apcu \
-        && docker-php-ext-enable apcu
+RUN pecl install apcu \
+    && docker-php-ext-enable apcu
 
 # Install PHP extensions
 RUN docker-php-ext-install \
@@ -36,13 +52,12 @@ RUN docker-php-ext-install \
     sysvsem \
     bcmath
 
-# Install Redis
-RUN apk add --no-cache pcre-dev $PHPIZE_DEPS \
-        && pecl install redis \
-        && docker-php-ext-enable redis.so
+# Install FTP
+RUN docker-php-ext-install ftp
 
-# Install GIT
-RUN apk add --no-cache git
+# Install Redis
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 
 # Install Xdebug from GitHub
 RUN git clone https://github.com/xdebug/xdebug.git /usr/src/php/ext/xdebug \
@@ -54,12 +69,9 @@ RUN git clone https://github.com/xdebug/xdebug.git /usr/src/php/ext/xdebug \
     && docker-php-ext-enable xdebug
 
 # Install intl extension
-# Install intl extension
-RUN apk add --no-cache \
-  icu-dev \
-  && docker-php-ext-install -j$(nproc) intl \
-  && docker-php-ext-enable intl \
-  && rm -rf /tmp/*
+RUN apk add --no-cache icu-dev \
+    && docker-php-ext-install intl
+
 # Fix iconv library for Alpine
 RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted gnu-libiconv
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
@@ -67,18 +79,10 @@ ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install Symfony CLI
-RUN apk add --no-cache bash \
-  && curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.alpine.sh' | bash \
-  && apk add symfony-cli
-RUN mkdir /.symfony5 \
-  && chown -R 501:0 /.symfony5
-
 # Copy configuration files
 COPY ./conf/xdebug.ini $PHP_INI_DIR/conf.d/xdebug.ini
 COPY ./conf/php.ini $PHP_INI_DIR/php.ini
 COPY ./conf/opcache.ini $PHP_INI_DIR/conf.d/opcache.ini
-COPY ./cron/crontab /etc/crontabs/root
 
 # Add PHP-FPM configuration
 RUN echo 'pm = dynamic' >> $PHP_INI_DIR/../php-fpm.d/www.conf && \
@@ -87,6 +91,9 @@ RUN echo 'pm = dynamic' >> $PHP_INI_DIR/../php-fpm.d/www.conf && \
     echo 'pm.min_spare_servers = 16' >> $PHP_INI_DIR/../php-fpm.d/www.conf && \
     echo 'pm.max_spare_servers = 32' >> $PHP_INI_DIR/../php-fpm.d/www.conf && \
     echo 'pm.max_requests = 200' >> $PHP_INI_DIR/../php-fpm.d/www.conf
+
+# Install JPEGOptim and OptiPNG
+RUN apk add jpegoptim optipng
 
 # Supervisor configuration
 COPY ./conf/supervisord.conf /etc/supervisord.conf

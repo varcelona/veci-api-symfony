@@ -32,7 +32,8 @@
           {%- if image_uri -%}
             <img src="{{ asset(image_uri) | imagine_filter('thumbnail4x3')}}" class="img-fluid w-100 " alt="" />
           {%- else -%}
-            <img src="{{ 'ui.no_image'|trans }}" class="img-fluid no-image" alt="{{ 'ui.no_image'|trans }}" />
+            <img src="{{ absolute_url(asset('build/images/backend/logo.png')) }}" class="img-fluid no-image" alt="{{ 'ui.no_image'|trans }}" />
+            <p>{{ 'ui.no_image'|trans }}</p>
           {%- endif -%}
 
           {%- if download_uri -%}
