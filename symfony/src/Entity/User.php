@@ -39,10 +39,6 @@ use App\Models\CreateUpdateTrait;
         new Query(security: "is_granted('IS_AUTHENTICATED_FULLY')"),
         new QueryCollection(security: "is_granted('ROLE_ADMIN')"),
 
-        // Crear/editar usuarios internos (solo admin)
-        new Mutation(name: 'create', security: "is_granted('ROLE_ADMIN')"),
-        new Mutation(name: 'update', security: "is_granted('IS_AUTHENTICATED_FULLY')"),
-
         // Eliminar usuarios (solo admin)
         new DeleteMutation(name: 'delete', security: "is_granted('ROLE_ADMIN')"),
 
@@ -53,15 +49,14 @@ use App\Models\CreateUpdateTrait;
             security: "is_granted('IS_AUTHENTICATED_FULLY')",
             args: []
         ),
-
         // Registro con perfil completo
         new Mutation(
             name: 'register',
             resolver: CreateUserWithProfileResolver::class,
             security: "is_granted('PUBLIC_ACCESS')",
             args: [
-                'email' => ['type' => 'String!'],
-                'password' => ['type' => 'String!'],
+                'email' => ['type' => 'String'],
+                'password' => ['type' => 'String'],
                 'roles' => ['type' => '[String!]', 'description' => 'Roles opcionales'],
                 'enabled' => ['type' => 'Boolean', 'description' => 'Por defecto true'],
                 'profile' => ['type' => 'UserProfileInput!', 'description' => 'Datos del perfil embebido']
@@ -117,7 +112,8 @@ use App\Models\CreateUpdateTrait;
             write: false,
             deserialize: false,
             validate: false
-        ),
+        )
+
     ]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface

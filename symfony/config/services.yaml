@@ -10,6 +10,7 @@ parameters:
     app.site_domain: '%env(SITE_DOMAIN)%'
     app.site_admin_host: '%env(SITE_ADMIN_HOST)%'
     app.front_verify_url: '%env(APP_VERIFY_URL)%'
+    app.front_reset_password_url: '%env(APP_PASSWORD_RESET_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -53,3 +54,7 @@ services:
     App\Service\RefreshTokenGenerator:
         arguments:
             $refreshTokenTtl: '%gesdinet_jwt_refresh_token.ttl%'
+
+    App\Resolver\ConfirmPasswordResetResolver:
+        tags:
+        - { name: api_platform.graphql.mutation_resolver }

@@ -165,6 +165,13 @@ ui:
   help:
     check_email_link_expiration: "El link para recuperar la contraseña expira en:"
     check_email_dont_receive: "Si no recibiste el correo:"
+  auth:
+    reset_link_sent: 'Si el email existe, se envió un link para modificar la contraseña.'
+    could_not_process: 'No se pudo procesar la solicitud de modificación de contraseña.'
+    invalid_email: 'Email inválido.'
+    missing_token: 'Falta el token o la nueva contraseña.'
+    invalid_expired_token: 'Token inválido o expirado.'
+    password_updated: 'Contraseña modificada con éxito.'
 menu:
   go_website: 'Ver la web'
   dashboard: 'Dashboard'
