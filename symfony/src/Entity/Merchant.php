@@ -17,6 +17,8 @@ use App\State\UserPasswordHasher;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\User;
 
 #[ApiResource(
@@ -54,9 +56,13 @@ class Merchant
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
-    #[ORM\ManyToOne(inversedBy: 'merchant')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Store $store = null;
+    #[ORM\ManyToMany(targetEntity: Store::class, mappedBy: 'merchants')]
+    private Collection $stores;
+
+    public function __construct()
+    {
+        $this->stores = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -75,17 +81,27 @@ class Merchant
         return $this;
     }
 
-    public function getStore(): ?Store
+    public function getStores(): Collection
     {
-        return $this->store;
+        return $this->stores;
     }
 
-    public function setStore(?Store $store): static
+    public function addStore(Store $store): self
     {
-        $this->store = $store;
+        if (!$this->stores->contains($store)) {
+            $this->stores->add($store);
+            $store->addMerchant($this);
+        }
 
         return $this;
     }
 
+    public function removeStore(Store $store): self
+    {
+        if ($this->stores->removeElement($store)) {
+            $store->removeMerchant($this);
+        }
 
+        return $this;
+    }
 }

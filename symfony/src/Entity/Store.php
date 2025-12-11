@@ -15,12 +15,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use App\GraphQL\Input\StoreInput;
 
 #[ORM\Entity(repositoryClass: StoreRepository::class)]
 
 #[ApiResource(
-    normalizationContext: ['groups' => ['stores:read', "brands:read"]],
-    denormalizationContext: ['groups' => ['stores:write']],
+    normalizationContext: ['groups' => ['store:read', "brand:read"]],
+    denormalizationContext: ['groups' => ['store:write']],
     paginationClientEnabled: true,
     paginationType: 'page',
     graphQlOperations: [
@@ -44,56 +45,72 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
         ),
     ]
 )]
+#[ORM\HasLifecycleCallbacks]
 class Store
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["stores:read"])]
+    #[Groups(["store:read", 'storeDiscount:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255, nullable: false)]
+    #[ORM\Column(length: 180)]
     #[Assert\NotBlank]
-    #[Groups(["stores:read", "stores:write", 'schedule:read'])]
-    private ?string $title = null;
+    #[Groups(['store:read', 'store:write', 'storeDiscount:read'])]
+    private string $name;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Assert\NotBlank]
-    #[Groups(["stores:read", "stores:write"])]
+    #[ORM\Column(length: 255, unique: true, nullable: true)]
+    #[Groups(['store:read', 'store:write'])]
+    private ?string $slug = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['store:read', 'store:write'])]
     private ?string $description = null;
 
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Groups(['store:read', 'store:write'])]
+    private string $address;
+
     #[ORM\Column(nullable: true)]
-    #[Groups(["stores:read", "stores:write"])]
+    #[Groups(["store:read", "store:write"])]
     private ?bool $enabled = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(['store:read', 'store:write'])]
+    private ?string $phone = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
+    #[Groups(['store:read', 'store:write'])]
+    private ?string $email = null;
+
 
     #[ORM\ManyToOne(targetEntity: Brand::class, inversedBy: 'stores')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["stores:read", "stores:write"])]
+    #[Groups(["store:read", "store:write"])]
     private ?Brand $brand = null;
 
-    #[ORM\Column(length: 255)]
-    #[Groups(["stores:read", "stores:write"])]
-    private ?string $address = null;
+    #[ORM\ManyToMany(targetEntity: Merchant::class, inversedBy: 'stores')]
+    #[ORM\JoinTable(name: 'store_merchant')]
+    #[Groups(['store:read'])]
+    private Collection $merchants;
 
-    /**
-     * @var Collection<int, StoreProduct>
-     */
-    #[ORM\OneToMany(targetEntity: StoreProduct::class, mappedBy: 'store')]
-    #[Groups(["stores:read"])]
-    private Collection $products;
+    #[ORM\OneToMany(mappedBy: 'store', targetEntity: StoreDiscount::class, cascade: ['persist', 'remove'])]
+    #[Groups(['store:read'])]
+    private Collection $discounts;
 
     #[ORM\Column(type: "json", nullable: false)]
     #[Assert\NotBlank]
-    #[Groups(["stores:read", "stores:write"])]
+    #[Groups(["store:read", "store:write"])]
     private array $geolocation = [];
 
     /**
      * @var Collection<int, StoreSchedule>
      */
-    #[ORM\OneToMany(targetEntity: StoreSchedule::class, mappedBy: 'store')]
+    #[ORM\OneToMany(targetEntity: StoreSchedule::class, mappedBy: 'store', cascade: ['persist', 'remove'])]
     #[Assert\NotBlank]
-    #[Groups(["stores:read", "stores:write"])]
-    private Collection $schedule;
+    #[Groups(["store:read"])]
+    private iterable $schedule;
 
     /**
      * @var Collection<int, Customer>
@@ -101,18 +118,13 @@ class Store
     #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'favorites')]
     private Collection $customers;
 
-    /**
-     * @var Collection<int, Merchant>
-     */
-    #[ORM\OneToMany(targetEntity: Merchant::class, mappedBy: 'store', orphanRemoval: true)]
-    private Collection $merchant;
-
     public function __construct()
     {
-        $this->products = new ArrayCollection();
+
         $this->customers = new ArrayCollection();
         $this->schedule = new ArrayCollection();
-        $this->merchant = new ArrayCollection();
+        $this->merchants = new ArrayCollection();
+        $this->discounts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -120,14 +132,13 @@ class Store
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getName(): string
     {
-        return $this->title;
+        return $this->name;
     }
-
-    public function setTitle(string $title): static
+    public function setName(string $name): static
     {
-        $this->title = $title;
+        $this->name = $name;
 
         return $this;
     }
@@ -140,6 +151,30 @@ class Store
     public function setDescription(string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    public function getSlug(): string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): static
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): static
+    {
+        $this->email = $email;
 
         return $this;
     }
@@ -180,32 +215,14 @@ class Store
         return $this;
     }
 
-    /**
-     * @return Collection<int, StoreProduct>
-     */
-    public function getProducts(): Collection
+    public function getPhone(): ?string
     {
-        return $this->products;
+        return $this->phone;
     }
 
-    public function addProduct(StoreProduct $product): static
+    public function setPhone(?string $phone): static
     {
-        if (!$this->products->contains($product)) {
-            $this->products->add($product);
-            $product->setStore($this);
-        }
-
-        return $this;
-    }
-
-    public function removeProduct(StoreProduct $product): static
-    {
-        if ($this->products->removeElement($product)) {
-            // set the owning side to null (unless already changed)
-            if ($product->getStore() === $this) {
-                $product->setStore(null);
-            }
-        }
+        $this->phone = $phone;
 
         return $this;
     }
@@ -256,36 +273,6 @@ class Store
     }
 
     /**
-     * @return Collection<int, Merchant>
-     */
-    public function getMerchant(): Collection
-    {
-        return $this->merchant;
-    }
-
-    public function addMerchant(Merchant $merchant): static
-    {
-        if (!$this->merchant->contains($merchant)) {
-            $this->merchant->add($merchant);
-            $merchant->setStore($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMerchant(Merchant $merchant): static
-    {
-        if ($this->merchant->removeElement($merchant)) {
-            // set the owning side to null (unless already changed)
-            if ($merchant->getStore() === $this) {
-                $merchant->setStore(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, Customer>
      */
     public function getCustomers(): Collection
@@ -310,5 +297,60 @@ class Store
         }
 
         return $this;
+    }
+
+    public function getMerchants(): Collection
+    {
+        return $this->merchants;
+    }
+
+    public function addMerchant(Merchant $merchant): static
+    {
+        if (!$this->merchants->contains($merchant)) {
+            $this->merchants->add($merchant);
+        }
+
+        return $this;
+    }
+
+    public function removeMerchant(Merchant $merchant): static
+    {
+        $this->merchants->removeElement($merchant);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StoreDiscount>
+     */
+    public function getDiscounts(): Collection
+    {
+        return $this->discounts;
+    }
+
+    public function addDiscount(StoreDiscount $discount): static
+    {
+        if (!$this->discounts->contains($discount)) {
+            $this->discounts->add($discount);
+            $discount->setStore($this);
+        }
+
+        return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function generateSlug(): void
+    {
+        if (!$this->slug && $this->name) {
+            $this->slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $this->name)));
+        }
+    }
+
+    #[ORM\PreUpdate]
+    public function updateSlug(): void
+    {
+        if (!$this->slug && $this->name) {
+            $this->slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $this->name)));
+        }
     }
 }

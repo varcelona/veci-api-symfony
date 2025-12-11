@@ -14,21 +14,38 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use App\GraphQL\Input\StoreScheduleInput;
 
 #[ORM\Entity(repositoryClass: StoreScheduleRepository::class)]
-#[UniqueEntity('weekDay', 'store')]
+#[UniqueEntity(
+    fields: ['store', 'weekDay'],
+    message: 'Ya existe un horario cargado para este día en esta tienda.'
+)]
 #[Index(name: 'search_idx', columns: ['store_id'])]
 #[ApiResource(
-    normalizationContext: ['groups' => ['schedule:read']],
+    normalizationContext: ['groups' => ['schedule:read', 'store:read']],
     denormalizationContext: ['groups' => ['schedule:write']],
     paginationClientEnabled: true,
     paginationType: 'page',
     graphQlOperations: [
-        new Query(),
-        new QueryCollection(),
-        new Mutation(name: 'create'),
-        new Mutation(name: 'update'),
-        new DeleteMutation(name: 'delete'),
+        new Query(
+            security: "is_granted('PUBLIC_ACCESS')"
+        ),
+        new QueryCollection(
+            security: "is_granted('PUBLIC_ACCESS')"
+        ),
+        new Mutation(
+            name: 'create',
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Mutation(
+            name: 'update',
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new DeleteMutation(
+            name: 'delete',
+            security: "is_granted('ROLE_ADMIN')"
+        ),
     ]
 )]
 class StoreSchedule
@@ -36,20 +53,20 @@ class StoreSchedule
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['stores:read'])]
+    #[Groups(['store:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
-    #[Groups(['stores:read', 'schedule:read', 'schedule:write'])]
+    #[Groups(['store:read', 'schedule:read', 'schedule:write'])]
     private ?string $weekDay = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['stores:read', 'schedule:read', 'schedule:write'])]
+    #[Groups(['store:read', 'schedule:read', 'schedule:write'])]
     private ?\DateTimeInterface $timeFrom = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['stores:read', 'schedule:read', 'schedule:write'])]
+    #[Groups(['store:read', 'schedule:read', 'schedule:write'])]
     private ?\DateTimeInterface $timeTo = null;
 
     #[ORM\ManyToOne(inversedBy: 'schedule')]
@@ -59,8 +76,8 @@ class StoreSchedule
     private ?Store $store = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['stores:read', 'schedule:read', 'schedule:write'])]
-    private ?bool $isOpen = null;
+    #[Groups(['store:read', 'schedule:read', 'schedule:write'])]
+    private ?bool $open = null;
 
     public function getId(): ?int
     {
@@ -125,12 +142,12 @@ class StoreSchedule
 
     public function getOpen(): ?bool
     {
-        return $this->isOpen;
+        return $this->open;
     }
 
-    public function setOpen(bool $isOpen): static
+    public function setOpen(bool $open): static
     {
-        $this->isOpen = $isOpen;
+        $this->open = $open;
 
         return $this;
     }

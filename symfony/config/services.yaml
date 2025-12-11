@@ -54,7 +54,3 @@ services:
     App\Service\RefreshTokenGenerator:
         arguments:
             $refreshTokenTtl: '%gesdinet_jwt_refresh_token.ttl%'
-
-    App\Resolver\ConfirmPasswordResetResolver:
-        tags:
-        - { name: api_platform.graphql.mutation_resolver }

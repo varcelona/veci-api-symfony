@@ -17,8 +17,8 @@ use ApiPlatform\Metadata\GraphQl\QueryCollection;
 
 #[ORM\Entity(repositoryClass: BrandRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['brands:read', "stores:read"]],
-    denormalizationContext: ['groups' => ['brands:write']],
+    normalizationContext: ['groups' => ['brand:read', "store:read"]],
+    denormalizationContext: ['groups' => ['brand:write']],
     paginationType: 'page',
     graphQlOperations: [
         new Query(
@@ -42,28 +42,28 @@ class Brand
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["stores:read"])]
+    #[Groups(["store:read"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: false)]
     #[Assert\NotBlank]
-    #[Groups(["brand:read", "stores:read", "brands:write"])]
+    #[Groups(["brand:read", "store:read", "brand:write"])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Assert\NotBlank]
-    #[Groups(["brand:read", "stores:read", "brands:write"])]
+    #[Groups(["brand:read", "store:read", "brand:write"])]
     private ?string $description = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(["brand:read", "stores:read", "brands:write"])]
+    #[Groups(["brand:read", "store:read", "brand:write"])]
     private ?bool $enabled = null;
 
     /**
      * @var Collection<int, Store>
      */
-    #[ORM\OneToMany(targetEntity: Store::class, mappedBy: 'brand')]
-    #[Groups(["brand:read"])]
+    #[ORM\OneToMany(targetEntity: Store::class, mappedBy: 'brand', cascade: ['persist', 'remove'])]
+    #[Groups(["brand:read", "brand:write"])]
     private Collection $stores;
 
     public function __construct()

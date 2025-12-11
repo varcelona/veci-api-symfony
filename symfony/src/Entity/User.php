@@ -97,23 +97,7 @@ use App\Models\CreateUpdateTrait;
             resolver: SendUserVerificationEmailResolver::class,
             args: ['id' => ['type' => 'ID!']],
             security: "is_granted('IS_AUTHENTICATED_FULLY')"
-        ),
-
-        // Login de usuario
-        new Mutation(
-            name: 'loginCustomer',
-            resolver: LoginUserResolver::class,
-            args: [
-                'email' => ['type' => 'String!', 'description' => 'User email'],
-                'password' => ['type' => 'String!', 'description' => 'User password'],
-            ],
-            security: "is_granted('PUBLIC_ACCESS')",
-            read: false,
-            write: false,
-            deserialize: false,
-            validate: false
         )
-
     ]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface

@@ -172,6 +172,7 @@ ui:
     missing_token: 'Falta el token o la nueva contraseña.'
     invalid_expired_token: 'Token inválido o expirado.'
     password_updated: 'Contraseña modificada con éxito.'
+    logged_in_with_google: 'Has ingresado con Google.'
 menu:
   go_website: 'Ver la web'
   dashboard: 'Dashboard'
