@@ -1,0 +1,33 @@
+{{ form_start(form, {'attr': {'class': 'my-auto me-5 row gx-0 needs-validation was-validated'}}) }}
+<div class="col-9 mb-3 mb-xl-10">
+
+    <div class="card mb-5 mb-xl-10">
+        <div class="card-title py-4 px-5 m-0">
+            <h3 class="fw-bold m-0">
+                <i class="bi bi-{{ config.icon }}"></i> {{ block_header }}
+            </h3>
+        </div>
+
+        <div class="card-body p-5 m-0 pt-2">
+            {{ form_row(form.weekDay) }}
+            {{ form_row(form.open) }}
+
+            <div class="row">
+                <div class="col">
+                    {{ form_row(form.timeFrom) }}
+                </div>
+                <div class="col">
+                    {{ form_row(form.timeTo) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-3 ps-5">
+    <div class="sticky-top">
+        {{ include('@backend/store_schedule/_aside.html.twig', {'store_schedule': entity}) }}
+    </div>
+</div>
+
+{{ form_end(form) }}

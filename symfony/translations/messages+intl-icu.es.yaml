@@ -83,6 +83,9 @@ ui:
   casts: 'Elenco/Personajes'
   category_program: 'Categoría de Programa'
   verification: 'Verificación'
+  contact: 'Contacto'
+  no_contact: 'Sin contacto registrado'
+  settings: 'Configuraciones'
   entity:
     menu:
       plural: 'Menus'
@@ -106,18 +109,6 @@ ui:
       show_all: 'Ver todos los usuarios'
     setting_app:
       edit: 'Editar configuraciones del sitio'
-    setting_block:
-      plural: 'Bloques HTML'
-      new: 'Crear bloque HTML'
-      edit: 'Editar bloque HTML'
-      show_all: 'Ver todos los bloques HTML'
-    setting_seo:
-      edit: 'Editar ajustes SEO'
-    seo_redirect:
-      plural: 'Redirecciones 301'
-      new: 'Crear redirección'
-      edit: 'Editar redirección'
-      show_all: 'Ver todas las redirecciones'
     social_network:
       sort: 'Ordenar'
     setting_social_network:
@@ -125,6 +116,26 @@ ui:
       new: 'Agregar red social'
     log:
       plural: Logs
+    store:
+      plural: 'Tiendas'
+      new: 'Crear tienda'
+      edit: 'Editar tienda'
+      show_all: 'Ver todas las tiendas'
+    brand:
+      plural: 'Marcas'
+      new: 'Crear marca'
+      edit: 'Editar marca'
+      show_all: 'Ver todas las marcas'
+    discount:
+      plural: 'Descuentos'
+      new: 'Crear descuento'
+      edit: 'Editar descuento'
+      show_all: 'Ver todos los descuentos'
+    schedule:
+      plural: 'Horarios'
+      new: 'Crear horario'
+      edit: 'Editar horario'
+      show_all: 'Ver todos los horarios'
   button:
     login: 'Ingresar'
     validate: 'Validar'
@@ -146,7 +157,7 @@ ui:
     send_verification: 'Solicitar verificación de cuenta'
     block_account: 'Bloquear cuenta'
     block_account_confirm: 'Confirmar'
-
+    add_schedule: Agregar horario
   emails:
     auth_code_subject: 'Código de autenticación de dos factores'
     auth_code_message_open: 'Hemos recibido tu solicitud de un código de un solo uso para usarlo con tu cuenta.'
@@ -173,6 +184,15 @@ ui:
     invalid_expired_token: 'Token inválido o expirado.'
     password_updated: 'Contraseña modificada con éxito.'
     logged_in_with_google: 'Has ingresado con Google.'
+  modal:
+    close: 'Cerrar'
+    store_schedule:
+      delete:
+        success: 'El horario fue eliminado con éxito.'
+        error: 'No se pudo eliminar el horario.'
+      create:
+        success: El horario fue agregado correctamente.
+        error: No se pudo agregar el horario. Verificá que no esté duplicado.
 menu:
   go_website: 'Ver la web'
   dashboard: 'Dashboard'
@@ -181,24 +201,26 @@ menu:
     all: 'Todos los usuarios'
     new: 'Crear usuario'
     edit: 'Editar usuario'
-  menu:
-    plural: 'Menú'
-    frontend_main_menu: 'Menú principal'
-    frontend_footer_menu: 'Menú del footer'
-  settings:
-    plural: 'Configurar'
-  settings_app:
-    singular: 'Configuraciones del sitio'
-  settings_block:
-    plural: 'Bloques HTML'
-    all: 'Bloques HTML'
-    new: 'Crear Bloque HTML'
-    edit: 'Editar Bloque HTML'
-  settings_seo:
-    singular: 'Configuraciones de Seo'
-  seo_redirect:
-    plural: 'Redirecciones 301'
-
+  store:
+    plural: 'Tiendas'
+    all: 'Todas las tiendas'
+    new: 'Crear tienda'
+    edit: 'Editar tienda'
+  brand:
+    plural: 'Marcas'
+    all: 'Todas las marcas'
+    new: 'Crear marca'
+    edit: 'Editar marca'
+  discount:
+    plural: 'Descuentos'
+    all: 'Todos los descuentos'
+    new: 'Crear descuento'
+    edit: 'Editar descuento'
+  schedule:
+    plural: 'Horarios'
+    all: 'Todos los horarios'
+    new: 'Crear horario'
+    edit: 'Editar horario'
 form:
   label:
     title: 'Título'

@@ -1,0 +1,51 @@
+<table class="table align-middle">
+    <thead>
+        <tr>
+            <th>Día</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+            <th>Abierto</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for s in schedules %}
+        <tr data-id="{{ s.id }}">
+            <td>{{ s.weekDay|capitalize }}</td>
+
+            <td>
+                <input type="time"
+                       class="form-control form-control-sm"
+                       value="{{ s.timeFrom }}"
+                       data-action="change->store-schedule#update">
+            </td>
+
+            <td>
+                <input type="time"
+                       class="form-control form-control-sm"
+                       value="{{ s.timeTo }}"
+                       data-action="change->store-schedule#update">
+            </td>
+
+            <td class="text-center">
+                <input type="checkbox"
+                       class="form-check-input"
+                       {{ s.open ? 'checked' }}
+                       data-action="change->store-schedule#update">
+            </td>
+
+            <td>
+                <button class="btn btn-sm btn-danger"
+                        data-action="click->store-schedule#delete">
+                    ✕
+                </button>
+            </td>
+        </tr>
+    {% endfor %}
+    <button type="button"
+            class="btn btn-sm btn-outline-primary mt-3"
+            data-action="click->store-schedule#add">
+        + {{ 'ui.button.add_schedule'|trans }}
+    </button>
+    </tbody>
+</table>

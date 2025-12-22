@@ -1,0 +1,53 @@
+<div class="card">
+    <div class="card-body p-5">
+
+        <div class="mb-5">
+            <h4 class="fw-bold mb-1">{{ store.name }}</h4>
+            <div class="text-muted small">{{ store.slug }}</div>
+            <div class="text-muted small">
+                {{ store.brand ? store.brand.title : '-' }}
+            </div>
+        </div>
+
+        <div class="mb-5">
+            <span class="badge {{ store.enabled ? 'text-bg-success' : 'text-bg-secondary' }}">
+                {{ store.enabled ? 'ui.enabled'|trans : 'ui.disabled'|trans }}
+            </span>
+
+            {% if store.email or store.phone %}
+                <span class="badge text-bg-info ms-2">
+                    {{ 'ui.contact'|trans }}
+                </span>
+            {% else %}
+                <span class="badge text-bg-warning ms-2">
+                    {{ 'ui.no_contact'|trans }}
+                </span>
+            {% endif %}
+
+            {% if store.geolocation is not empty %}
+                <span class="badge text-bg-primary ms-2">
+                    GEO
+                </span>
+            {% else %}
+                <span class="badge text-bg-danger ms-2">
+                    {{ 'ui.no_geo'|trans }}
+                </span>
+            {% endif %}
+        </div>
+
+        <hr>
+
+        <div class="d-grid gap-2">
+            {#
+            <a href="{{ path('backend_store_schedule_index', {'store': store.id}) }}"
+               class="btn btn-outline-secondary btn-sm">
+                {{ 'ui.schedule'|trans }}
+            </a>
+            #}
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end p-5 pb-4">
+        <a href="{{ app.request.headers.get('referer') }}" class="btn btn-light me-2">{{ 'ui.button.cancel'|trans }}</a>
+        <button type="submit" class="btn btn-primary">{{ button_label|default('ui.button.save')|trans }}</button>
+    </div>
+</div>

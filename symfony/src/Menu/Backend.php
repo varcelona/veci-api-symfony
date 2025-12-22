@@ -48,7 +48,7 @@ final class Backend
         ->setAttributes(['class' => 'd-none d-lg-block text-secondary', 'role' => 'divider']);
 
       // Usuarios section
-      // if ($this->security->isGranted('MANAGE_ALL_USERS')) {
+      if ($this->security->isGranted('MANAGE_ALL_USERS')) {
         $menu
           ->addChild('backend_user', ['route' => 'backend_user_index'])
           ->setAttributes(['class' => 'accordion-item'])
@@ -75,7 +75,57 @@ final class Backend
             ->setLinkAttributes(['class' => 'menu-link d-none'])
             ->setLabel($this->translator->trans('menu.user.edit'));
         }
-      // }
+      }
+
+      // Stores section
+      if ($this->security->isGranted('MANAGE_ALL_STORES') || $this->security->isGranted('MANAGE_OWN_STORES')) {
+          $menu
+              ->addChild('backend_store', ['route' => 'backend_store_index'])
+              ->setAttributes(['class' => 'accordion-item'])
+              ->setChildrenAttributes([
+                  'class' => 'accordion-collapse collapse',
+                  'id' => 'storesAccordion',
+                  'data-bs-parent' => '#backendMenuAccordion'
+              ])
+              ->setLabel($this->translator->trans('menu.store.plural'))
+              ->setExtras([
+                  'menuTitle' => '1',
+                  'icon' => 'bi-shop',
+                  'attributes' => [
+                      'class' => 'accordion-header accordion-button collapsed',
+                      'data-bs-target' => "#storesAccordion",
+                      'data-bs-toggle' => "collapse",
+                      'role' => "button",
+                      'aria-expanded' => "false",
+                      'aria-controls' => "storesAccordion"
+                  ]
+              ]);
+
+          $menu['backend_store']
+              ->addChild('backend_store_index', ['route' => 'backend_store_index'])
+              ->setAttributes(['class' => 'menu-item'])
+              ->setLinkAttributes(['class' => 'menu-link'])
+              ->setLabel($this->translator->trans('menu.store.all'));
+
+          if ($this->security->isGranted('MANAGE_ALL_STORES')) {
+          $menu['backend_store']
+              ->addChild('backend_store_new', ['route' => 'backend_store_new'])
+              ->setAttributes(['class' => 'menu-item'])
+              ->setLinkAttributes(['class' => 'menu-link'])
+              ->setLabel($this->translator->trans('menu.store.new'));
+          }
+          if ($request->get('id')) {
+              $menu['backend_store']
+                  ->addChild('backend_store_edit', [
+                      'route' => 'backend_store_edit',
+                      'routeParameters' => ['id' => $request->get('id')]
+                  ])
+                  ->setAttributes(['class' => 'menu-item'])
+                  ->setLinkAttributes(['class' => 'menu-link d-none'])
+                  ->setLabel($this->translator->trans('menu.store.edit'));
+          }
+      }
+
 
       return $menu;
     }

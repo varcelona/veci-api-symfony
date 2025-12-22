@@ -1,0 +1,22 @@
+<div class="modal fade"
+     id="storeScheduleModal"
+     tabindex="-1"
+     data-controller="store-schedule"
+     data-store-schedule-store-id-value="{{ store.id }}">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">{{ store.name }} · Horarios</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" data-store-schedule-target="body">
+                <div data-store-schedule-target="flash"></div>
+                <div class="text-center text-muted py-5">Cargando horarios…</div>
+            </div>
+
+        </div>
+    </div>
+</div>

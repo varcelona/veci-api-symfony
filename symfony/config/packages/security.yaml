@@ -113,10 +113,14 @@ security:
             - ROLE_MERCHANT
             - MANAGE_ALL_USERS
             - MANAGE_SELF
+            - MANAGE_ALL_STORES
+            - MANAGE_ALL_STORE_SCHEDULE
 
         ROLE_MERCHANT:
             - MANAGE_SELF_LIMITED
             - MANAGE_CUSTOMERS
+            - MANAGE_OWN_STORES
+            - MANAGE_OWN_STORE_SCHEDULE
 
         ROLE_CUSTOMER:
             - MANAGE_CUSTOMER_SELF

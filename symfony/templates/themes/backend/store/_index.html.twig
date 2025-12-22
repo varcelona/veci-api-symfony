@@ -1,0 +1,69 @@
+<table class="table table-hover gy-5 align-middle table-row-dashed">
+    <thead>
+        <tr class="text-uppercase">
+            <th>{{ 'ui.store'|trans }}</th>
+            <th>{{ 'ui.brand'|trans }}</th>
+            <th>{{ 'ui.enabled'|trans }}</th>
+            <th>{{ 'ui.contact'|trans }}</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for store in pagination %}
+        <tr>
+            <td>
+                <div class="fw-semibold text-gray-800">{{ store.name }}</div>
+                <div class="text-muted small">{{ store.slug }}</div>
+            </td>
+
+            <td class="text-muted">
+                {{ store.brand ? store.brand.title : '-' }}
+            </td>
+
+            <td>
+                <span class="badge {{ store.enabled ? 'text-bg-success' : 'text-bg-secondary' }}">
+                    {{ store.enabled ? 'ui.yes'|trans : 'ui.no'|trans }}
+                </span>
+            </td>
+
+            <td class="text-muted">
+                {% set contacts = [] %}
+                {% if store.email %}
+                    {% set contacts = contacts|merge([store.email]) %}
+                {% endif %}
+                {% if store.phone %}
+                    {% set contacts = contacts|merge([store.phone]) %}
+                {% endif %}
+                {{ contacts is not empty ? contacts|join(' · ') : '-' }}
+            </td>
+
+            <td>
+                <div class="dropdown">
+                    <button class="btn btn-secondary-light text-dark btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        {{ 'ui.actions'|trans }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item"
+                               href="{{ path('backend_store_edit', {'id': store.id}) }}">
+                                {{ 'ui.edit'|trans }}
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            {{ include('@backend/store/_delete_form.html.twig') }}
+                        </li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="5">{{ 'ui.no_records_found'|trans }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

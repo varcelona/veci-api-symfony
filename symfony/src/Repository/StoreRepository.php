@@ -5,53 +5,48 @@ namespace App\Repository;
 use App\Entity\Store;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\QueryBuilder;
 
 /**
- * @extends ServiceEntityRepository<Store>
+ * @extends BackendRepository<Store>
  */
-class StoreRepository extends ServiceEntityRepository
+class StoreRepository extends BackendRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Store::class);
     }
 
-    //    /**
-    //     * @return Store[] Returns an array of Store objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findByString(?string $string): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->leftJoin('s.brand', 'b')
+            ->addSelect('b');
 
-    //    public function findOneBySomeField($value): ?Store
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($string) {
+            $qb
+                ->orWhere('b.title LIKE :title')
+                ->setParameter('title', '%'.$string.'%')
+                ->orWhere('s.name LIKE :name')
+                ->setParameter('name', '%'.$string.'%')
+                ->orWhere('s.email LIKE :email')
+                ->setParameter('email', '%'.$string.'%')
+            ;
+        }
 
-    // public function findAreaBetween(float $min, float $max): array
-    // {
-    //     //The query builder is normally retrieved
-    //     $queryBuilder = $this->createQueryBuilder('b');
+        $qb
+            ->addOrderBy('s.enabled', 'DESC');
 
-    //     //We assume that the ST_AREA has been declared in configuration
-    //     return $queryBuilder->where('ST_AREA(b.plan) BETWEEN :min AND :max')
-    //         ->setParameter('min', $min, 'float')
-    //         ->setParameter('max', $max, 'float')
-    //         ->getQuery()
-    //         ->getResult()
-    //     ;
-    // }
+        return $qb;
+    }
+
+    public function save($entity, bool $flush = false): void
+    {
+        parent::save($entity, $flush);
+    }
+
+    public function remove($entity): void
+    {
+        parent::remove($entity);
+    }
 }
