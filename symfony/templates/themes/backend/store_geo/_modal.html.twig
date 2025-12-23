@@ -1,0 +1,40 @@
+<div class="modal fade"
+     id="storeGeoModal"
+     tabindex="-1"
+     data-controller="store-geo"
+     data-store-geo-store-id-value="{{ store.id }}">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {{ store.name }} · {{ 'ui.location'|trans }}
+                </h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div data-store-geo-target="flash"></div>
+
+                <div data-store-geo-target="map"
+                     style="height: 420px"
+                     class="border rounded">
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-success"
+                        data-action="click->store-geo#save">
+                    {{ 'ui.save_location'|trans }}
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

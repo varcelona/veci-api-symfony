@@ -86,6 +86,20 @@ ui:
   contact: 'Contacto'
   no_contact: 'Sin contacto registrado'
   settings: 'Configuraciones'
+  loading: Cargando…
+  day: Día
+  from: Desde
+  to: Hasta
+  open: Abierto
+  save: Guardar
+  cancel: Cancelar
+  monday: Lunes
+  tuesday: Martes
+  wednesday: Miércoles
+  thursday: Jueves
+  friday: Viernes
+  saturday: Sábado
+  sunday: Domingo
   entity:
     menu:
       plural: 'Menus'
@@ -157,7 +171,7 @@ ui:
     send_verification: 'Solicitar verificación de cuenta'
     block_account: 'Bloquear cuenta'
     block_account_confirm: 'Confirmar'
-    add_schedule: Agregar horario
+    store_schedule: 'Horario de la tienda'
   emails:
     auth_code_subject: 'Código de autenticación de dos factores'
     auth_code_message_open: 'Hemos recibido tu solicitud de un código de un solo uso para usarlo con tu cuenta.'
@@ -187,12 +201,14 @@ ui:
   modal:
     close: 'Cerrar'
     store_schedule:
+      title: 'Horarios de la tienda'
       delete:
         success: 'El horario fue eliminado con éxito.'
         error: 'No se pudo eliminar el horario.'
       create:
         success: El horario fue agregado correctamente.
         error: No se pudo agregar el horario. Verificá que no esté duplicado.
+      add_schedule: Agregar horario
 menu:
   go_website: 'Ver la web'
   dashboard: 'Dashboard'

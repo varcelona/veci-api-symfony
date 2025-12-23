@@ -18,124 +18,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[Route('/admin/store/{store}/schedule')]
 class StoreScheduleController extends AbstractController
 {
-    #[Route('/', name: 'backend_store_schedule_index', methods: ['GET'])]
-    public function index(
-        Store $store,
-        Request $request,
-        PaginatorInterface $paginator,
-        StoreScheduleRepository $repository
-    ): Response {
-        $this->denyAccessUnlessGranted(
-            StoreScheduleVoter::MANAGE_OWN,
-            $store
-        );
 
-        $pagination = $paginator->paginate(
-            $repository->findBy(['store' => $store], ['weekDay' => 'ASC']),
-            $request->query->getInt('page', 1),
-            20
-        );
-
-        return $this->render('@backend/store_schedule/_index.html.twig', [
-            'store' => $store,
-            'pagination' => $pagination,
-        ]);
-    }
-
-    #[Route('/new', name: 'backend_store_schedule_new', methods: ['GET', 'POST'])]
-    public function new(
-        Store $store,
-        Request $request,
-        StoreScheduleRepository $repository
-    ): Response {
-        $this->denyAccessUnlessGranted(
-            StoreScheduleVoter::MANAGE_OWN,
-            $store
-        );
-
-        $schedule = new StoreSchedule();
-        $schedule->setStore($store);
-
-        $form = $this->createForm(StoreScheduleType::class, $schedule);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $repository->save($schedule, true);
-
-            return $this->redirectToRoute('backend_store_schedule_index', [
-                'store' => $store->getId(),
-            ]);
-        }
-
-        return $this->render('@backend/store_schedule/_form.html.twig', [
-            'store' => $store,
-            'form' => $form,
-            'isNew' => true,
-        ]);
-    }
-
-    #[Route('/{id}/edit', name: 'backend_store_schedule_edit', methods: ['GET', 'POST'])]
-    public function edit(
-        Store $store,
-        StoreSchedule $schedule,
-        Request $request,
-        StoreScheduleRepository $repository
-    ): Response {
-        $this->denyAccessUnlessGranted(
-            StoreScheduleVoter::MANAGE_OWN,
-            $store
-        );
-
-        // Seguridad extra: evita edición cruzada por URL
-        if ($schedule->getStore() !== $store) {
-            throw $this->createNotFoundException();
-        }
-
-        $form = $this->createForm(StoreScheduleType::class, $schedule);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $repository->save($schedule, true);
-
-            return $this->redirectToRoute('backend_store_schedule_index', [
-                'store' => $store->getId(),
-            ]);
-        }
-
-        return $this->render('@backend/store_schedule/_form.html.twig', [
-            'store' => $store,
-            'form' => $form,
-            'isNew' => false,
-        ]);
-    }
-
-    #[Route('/{id}/delete', name: 'backend_store_schedule_delete', methods: ['POST'])]
-    public function delete(
-        Store $store,
-        StoreSchedule $schedule,
-        Request $request,
-        StoreScheduleRepository $repository
-    ): Response {
-        $this->denyAccessUnlessGranted(
-            StoreScheduleVoter::MANAGE_OWN,
-            $store
-        );
-
-        if ($schedule->getStore() !== $store) {
-            throw $this->createNotFoundException();
-        }
-
-        if ($this->isCsrfTokenValid('delete'.$schedule->getId(), $request->request->get('_token'))) {
-            $repository->remove($schedule, true);
-        }
-
-        return $this->redirectToRoute('backend_store_schedule_index', [
-            'store' => $store->getId(),
-        ]);
-    }
-
-
-    #[Route('/{id}/ajax-update', name: 'backend_store_schedule_ajax_update', methods: ['PATCH'])]
+    #[Route('/{id}/edit', name: 'backend_store_schedule_ajax_update', methods: ['PATCH'])]
     public function updateInline(
         StoreSchedule $schedule,
         Request $request,
@@ -158,7 +42,7 @@ class StoreScheduleController extends AbstractController
         return $this->json(['ok' => true]);
     }
 
-   #[Route('/{id}/ajax-delete', name: 'backend_store_schedule_ajax_delete', methods: ['DELETE'])]
+   #[Route('/{id}/delete', name: 'backend_store_schedule_ajax_delete', methods: ['DELETE'])]
     public function deleteSchedule(
         StoreSchedule $schedule,
         StoreScheduleRepository $repo,
@@ -184,8 +68,8 @@ class StoreScheduleController extends AbstractController
         }
     }
 
-    #[Route('/ajax-create', name: 'backend_store_schedule_ajax_create', methods: ['POST'])]
-    public function createSchedule(
+    #[Route('/save', name: 'backend_store_schedule_ajax_save', methods: ['POST'])]
+    public function saveSchedule(
         Store $store,
         Request $request,
         StoreScheduleRepository $repo,
@@ -216,7 +100,7 @@ class StoreScheduleController extends AbstractController
                 'success' => true,
                 'message' => $translator->trans('store_schedule.create.success'),
                 'html' => $this->renderView(
-                    '@backend/store_schedule/_create.html.twig',
+                    '@backend/store_schedule/_row.html.twig',
                     ['s' => $schedule]
                 )
             ]);
@@ -228,4 +112,10 @@ class StoreScheduleController extends AbstractController
             ], 400);
         }
     }
+
+    #[Route('/new-row-template', name: 'backend_store_schedule_new_row_template', methods: ['GET'])]
+        public function newRowTemplate(): Response
+        {
+            return $this->render('@backend/store_schedule/_row_new.html.twig');
+        }
 }

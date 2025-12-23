@@ -8,11 +8,14 @@ use App\Form\StoreType;
 use App\Repository\StoreRepository;
 use App\Repository\StoreScheduleRepository;
 use App\Security\Voter\StoreScheduleVoter;
+use App\Security\Voter\StoreVoter;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/admin/store')]
 class StoreController extends AbstractController
@@ -135,4 +138,42 @@ class StoreController extends AbstractController
             ),
         ]);
     }
+
+    #[Route('/{store}/geo/ajax-save', name: 'backend_store_geo_ajax_save', methods: ['POST'])]
+    public function saveGeo(
+        Store $store,
+        Request $request,
+        StoreRepository $repo,
+        TranslatorInterface $translator
+    ): JsonResponse {
+        $this->denyAccessUnlessGranted(
+            StoreVoter::MANAGE_OWN,
+            $store
+        );
+
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            $store->setGeolocation([
+                'type' => 'Point',
+                'coordinates' => [
+                    (float) $data['lng'],
+                    (float) $data['lat'],
+                ],
+            ]);
+
+            $repo->save($store, true);
+
+            return $this->json([
+                'success' => true,
+                'message' => $translator->trans('store.geo.save.success'),
+            ]);
+        } catch (\Throwable $e) {
+            return $this->json([
+                'success' => false,
+                'message' => $translator->trans('store.geo.save.error'),
+            ], 400);
+        }
+    }
+
 }

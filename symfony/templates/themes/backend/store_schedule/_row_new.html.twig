@@ -1,0 +1,39 @@
+<tr data-new="1">
+    <td>
+        <select class="form-select form-select-sm">
+            <option value="{{ 'ui.monday'|trans }}">{{ 'ui.monday'|trans }}</option>
+            <option value="{{ 'ui.tuesday'|trans }}">{{ 'ui.tuesday'|trans }}</option>
+            <option value="{{ 'ui.wednesday'|trans }}">{{ 'ui.wednesday'|trans }}</option>
+            <option value="{{ 'ui.thursday'|trans }}">{{ 'ui.thursday'|trans }}</option>
+            <option value="{{ 'ui.friday'|trans }}">{{ 'ui.friday'|trans }}</option>
+            <option value="{{ 'ui.saturday'|trans }}">{{ 'ui.saturday'|trans }}</option>
+            <option value="{{ 'ui.sunday'|trans }}">{{ 'ui.sunday'|trans }}</option>
+        </select>
+    </td>
+
+    <td>
+        <input type="time" class="form-control form-control-sm">
+    </td>
+
+    <td>
+        <input type="time" class="form-control form-control-sm">
+    </td>
+
+    <td class="text-center">
+        <input type="checkbox" class="form-check-input" checked>
+    </td>
+
+    <td class="d-flex gap-2">
+        <button type="button"
+                class="btn btn-sm btn-success"
+                data-action="click->store-schedule#saveNew">
+            {{ 'ui.save'|trans }}
+        </button>
+
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary"
+                data-action="click->store-schedule#cancelNew">
+            {{ 'ui.cancel'|trans }}
+        </button>
+    </td>
+</tr>

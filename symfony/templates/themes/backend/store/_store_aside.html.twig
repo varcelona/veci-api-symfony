@@ -41,10 +41,16 @@
             {% if isNew is not defined %}
             <button type="button"
                     id="btnStoreSchedule"
-                    class="btn btn-outline-secondary">
-                🕒 Horarios
+                    class="btn btn-light">
+                🕑 {{ 'ui.modal.store_schedule.title'|trans }}
             </button>
             {% endif %}
+            <button type="button"
+                    id="btnStoreGeo"
+                    class="btn btn-outline-secondary">
+                📍 Ubicación
+            </button>
+
         </div>
     </div>
     <div class="card-footer d-flex justify-content-end p-5 pb-4">

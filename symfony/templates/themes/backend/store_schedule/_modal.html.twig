@@ -8,13 +8,13 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">{{ store.name }} · Horarios</h5>
+                <h5 class="modal-title">{{ store.name }} · {{ 'ui.button.store_schedule'|trans }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body" data-store-schedule-target="body">
                 <div data-store-schedule-target="flash"></div>
-                <div class="text-center text-muted py-5">Cargando horarios…</div>
+                <div class="text-center text-muted py-5">{{ 'ui.loading'|trans }}</div>
             </div>
 
         </div>
