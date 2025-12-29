@@ -3,72 +3,14 @@
     <div class="row main-content">
       <div class="col-sm-3 pe-sm-5 mb-5 mb-sm-0">
         <div class="navbar-brand">
-          <img loading="lazy" src="{{ absolute_url(asset('build/images/frontend/logo-wowcx.png')) }}" class="img-fluid" alt="{{ settings.prop.siteSlogan }}" width="281" height="110">
+          <img loading="lazy" src="" class="img-fluid" alt="{{ settings.prop.siteSlogan }}" width="281" height="110">
         </div>
         <p class="pt-3 mb-0 small">© {{ 'now' | date('Y') }} {{ settings.prop.siteShortName }}.</p>
         <p class="mb-0 small">{{ settings.prop.legalText }}</p>
       </div>
 
       <div class="col-sm-3">
-        <ul class="list-unstyled">
-          <li class="mb-4">
-            <a href="{{ path('app_page', {'slug': 'nosotros'}) }}" class="fw-bold text-uppercase">Acerca de WOW CX</a>
-          </li>
-          <li class="mb-4">
-            <a href="mailto:{{ settings.prop.hiringEmail }}" target="_blank" class="fw-bold text-uppercase">Empleos</a>
-          </li>
-          <li class="mb-4">
-            <a href="{{ settings.prop.locationLink }}" target="_blank" class="fw-bold text-uppercase">Ver ubicación</a>
-          </li>
-        </ul>
-      </div>
-
-      <div class="col-sm-3 mb-5 mb-sm-0">
-        <div class="fw-bold text-uppercase mb-4">Contacto</div>
-        <a href="https://wa.me/{{ settings.prop.phone }}" target="_blank" class="mb-4 d-block">Vía WhatsApp</a>
-        <a href="mailto:{{ settings.prop.contactEmail }}" target="_blank" class="mb-4 d-block">info@wowcx.com</a>
-      </div>
-
-      <div class="col-sm-3">
         <div class="fw-bold text-uppercase mb-4">Suscríbete al Newsletter</div>
-        <form action="https://forms.zohopublic.com/wowcustomerexperience/form/Newsletter1/formperma/E6wUk4DLR8KZNrcptogk9r-NrcZ9Rcmlp-AEKvkpEYE/htmlRecords/submit" method="POST" accept-charset="UTF-8" enctype="multipart/form-data">
-          <div class="row g-2 mb-2">
-            <div class="col">
-              <label for="Name_First" class="form-label d-none">{{ 'ui.form.label.name'|trans }}</label>
-              <input type="text" class="form-control" required maxlength="255" id="Name_First" name="Name_First" placeholder="{{ 'ui.form.label.name'|trans }}" aria-describedby="Name_FirstHelp"/>
-              <div id="Name_FirstHelp" class="form-text d-none">{{ 'ui.form.help.name'|trans }}</div>
-            </div>
-
-            <div class="col">
-              <label for="Name_Last" class="form-label d-none">{{ 'ui.form.label.lastname'|trans }}</label>
-              <input type="text" class="form-control" required maxlength="255" id="Name_Last" name="Name_Last" placeholder="{{ 'ui.form.label.lastname'|trans }}" aria-describedby="Name_LastHelp"/>
-              <div id="Name_LastHelp" class="form-text d-none">{{ 'ui.form.help.lastname'|trans }}</div>
-            </div>
-          </div>
-
-          <div class="row g-2 mb-2">
-            <div class="col-9">
-              <label for="Email" class="form-label d-none">{{ 'ui.form.label.email'|trans }}</label>
-              <input type="text" class="form-control" required maxlength="255" id="Email" name="Email" placeholder="{{ 'ui.form.label.email'|trans }}" aria-describedby="EmailHelp"/>
-              <div id="EmailHelp" class="form-text d-none">{{ 'ui.form.help.email'|trans }}</div>
-            </div>
-
-            <div class="form-check d-none">
-              <input class="form-check-input" type="checkbox" name="TermsConditions" id="TermsConditions" checked>
-              <label class="form-check-label" for="TermsConditions">
-                {{ 'ui.form.label.terms'|trans }}
-              </label>
-            </div>
-
-            <input type="hidden" name="zf_referrer_name" value="{{ settings.prop.siteName }}"><!-- To Track referrals , place the referrer name within the " " in the above hidden input field -->
-            <input type="hidden" name="zf_redirect_url" value="https://www.wowcx.com/gracias-newsletter"><!-- To redirect to a specific page after record submission , place the respective url within the " " in the above hidden input field -->
-            <input type="hidden" id="zc_gad" name="zc_gad" value=""/><!-- If GCLID is enabled in Zoho CRM Integration, click details of AdWords Ads will be pushed to Zoho CRM -->
-
-            <div class="col-3">
-              <button type="submit" class="btn btn-sm btn-primary p-0 h-100 w-100"><i class="bi bi-arrow-right-short fs-4 lh-normal text-white"></i></button>
-            </div>
-          </div>
-        </form>
       </div>
     </div>
 
